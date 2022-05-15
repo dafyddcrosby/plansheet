@@ -1,0 +1,74 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "yaml"
+
+begin
+  config = YAML.load_file "#{Dir.home}/.plansheet.yml"
+rescue StandardError
+  abort "unable to load plansheet config file"
+end
+
+status_priority = {
+  "wip" => 1,
+  "ready" => 2,
+  "blocked" => 3,
+  "planning" => 4,
+  "idea" => 5,
+  "dropped" => 6,
+  "done" => 7
+}
+
+project_hash = {}
+projects = Dir.glob("*yml", base: config["projects_dir"])
+projects.each do |l|
+  contents = YAML.load_file(File.join(config["projects_dir"], l))
+  key = l.gsub(".yml", "")
+  contents.each do |project|
+    key = project["project"]
+    project_hash[key] = {
+      name: project["project"]
+    }
+    %w[tasks desc done].each do |k|
+      project_hash[key][k.to_sym] = project[k] if project[k]
+    end
+    project_hash[key][:status] = if project["status"]
+                                   project["status"]
+                                 elsif project_hash[key][:tasks]
+                                   "planning"
+                                 else
+                                   "idea"
+                                 end
+  end
+end
+
+sorted_hash = project_hash.sort_by { |_, v| status_priority[v[:status]] }
+
+def project_minipage(proj)
+  p proj
+  str = String.new
+  str << "\\begin{minipage}{5cm}\n"
+  str << "#{proj[:name]} - #{proj[:status]} \\\\\n"
+  proj[:tasks]&.each do |t|
+    str << "$\\square$ #{t} \\\\\n"
+  end
+  str << "\\end{minipage}\n"
+  str
+end
+
+projects_str = String.new
+projects_str << <<~FRONTMATTER
+  ---
+  geometry: margin=3cm
+  ---
+  \\thispagestyle{empty}
+FRONTMATTER
+
+sorted_hash.first(30).each do |_, p|
+  projects_str << project_minipage(p)
+end
+
+Dir.mkdir config["output_dir"] unless Dir.exist? config["output_dir"]
+f = File.open("#{config["output_dir"]}/projects.md", "w")
+f.write(projects_str)
+f.close

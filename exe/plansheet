@@ -56,12 +56,15 @@ def project_minipage(proj)
   str
 end
 
+require 'date'
 projects_str = String.new
 projects_str << <<~FRONTMATTER
   ---
   geometry: margin=3cm
   ---
   \\thispagestyle{empty}
+
+  # Date: #{Date.today}
 FRONTMATTER
 
 sorted_hash.first(30).each do |_, p|

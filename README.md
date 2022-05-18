@@ -1,25 +1,14 @@
 # Plansheet
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/plansheet`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Plansheet is a simple to-do list generator program that creates a
+structured printout (a la [pandoc](https://pandoc.org)) from a
+pile of formatted [YAML](https://yaml.org) files. Still very much a work-in-progress
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
 ```ruby
-gem 'plansheet'
+gem install plansheet
 ```
-
-And then execute:
-
-    $ bundle install
-
-Or install it yourself as:
-
-    $ gem install plansheet
-
 ## Usage
 
 TODO: Write usage instructions here

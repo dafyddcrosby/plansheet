@@ -11,6 +11,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Ruby ${{ matrix.ruby }}
+    env:
+      BUNDLE_WITH: development
     strategy:
       matrix:
         ruby:

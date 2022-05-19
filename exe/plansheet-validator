@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "plansheet"
+require "kwalify"
+require "yaml"
+require "pp"
+
+# TODO: yuck!
+filename = ARGV.first
+validator = Kwalify::Validator.new(Plansheet::PROJECT_SCHEMA)
+errors = validator.validate(YAML.load_file(filename))
+# Check YAML validity
+if errors && !errors.empty?
+  errors.each do |err|
+    puts "- [#{err.path}] #{err.message}"
+  end
+  abort "Schema errors in #{filename}"
+end

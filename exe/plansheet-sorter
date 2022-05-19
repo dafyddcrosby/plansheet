@@ -4,16 +4,7 @@
 # An ugly script to sort projects by status (and eventually priority)
 
 require "yaml"
-
-status_priority = {
-  "wip" => 1,
-  "ready" => 2,
-  "blocked" => 3,
-  "planning" => 4,
-  "idea" => 5,
-  "dropped" => 6,
-  "done" => 7
-}
+require "plansheet"
 
 def project_priority(project)
   if project["status"]
@@ -27,6 +18,8 @@ end
 
 filename = ARGV.first
 contents = YAML.load_file(filename)
-sorted_hash = contents.sort_by { |project| status_priority[project_priority project] }
+sorted_hash = contents.sort_by do |project|
+  Plansheet::PROJECT_STATUS_PRIORITY[project_priority project]
+end
 
 File.write(filename, YAML.dump(sorted_hash))

@@ -2,22 +2,13 @@
 # frozen_string_literal: true
 
 require "yaml"
+require "plansheet"
 
 begin
   config = YAML.load_file "#{Dir.home}/.plansheet.yml"
 rescue StandardError
   abort "unable to load plansheet config file"
 end
-
-status_priority = {
-  "wip" => 1,
-  "ready" => 2,
-  "blocked" => 3,
-  "planning" => 4,
-  "idea" => 5,
-  "dropped" => 6,
-  "done" => 7
-}
 
 project_hash = {}
 projects = Dir.glob("*yml", base: config["projects_dir"])
@@ -42,7 +33,9 @@ projects.each do |l|
   end
 end
 
-sorted_hash = project_hash.sort_by { |_, v| status_priority[v[:status]] }
+sorted_hash = project_hash.sort_by do |_, v|
+  Plansheet::PROJECT_STATUS_PRIORITY[v[:status]]
+end
 
 def project_minipage(proj)
   p proj
@@ -67,7 +60,7 @@ projects_str << <<~FRONTMATTER
   # Date: #{Date.today}
 FRONTMATTER
 
-sorted_hash.first(30).each do |_, p|
+sorted_hash.first(60).each do |_, p|
   projects_str << project_minipage(p)
 end
 

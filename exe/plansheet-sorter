@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# An ugly script to sort projects by status (and eventually priority)
+
+require "yaml"
+
+status_priority = {
+  "wip" => 1,
+  "ready" => 2,
+  "blocked" => 3,
+  "planning" => 4,
+  "idea" => 5,
+  "dropped" => 6,
+  "done" => 7
+}
+
+def project_priority(project)
+  if project["status"]
+    project["status"]
+  elsif project["tasks"]
+    "planning"
+  else
+    "idea"
+  end
+end
+
+filename = ARGV.first
+contents = YAML.load_file(filename)
+sorted_hash = contents.sort_by { |project| status_priority[project_priority project] }
+
+File.write(filename, YAML.dump(sorted_hash))

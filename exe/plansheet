@@ -56,7 +56,7 @@ def project_minipage(proj)
   str
 end
 
-require 'date'
+require "date"
 projects_str = String.new
 projects_str << <<~FRONTMATTER
   ---

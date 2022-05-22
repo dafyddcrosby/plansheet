@@ -19,10 +19,8 @@ projects.each do |l|
   errors = validator.validate(contents)
   # Check YAML validity
   if errors && !errors.empty?
-    STDERR.write "Schema errors in #{l}\n"
-    errors.each do |err|
-      puts "- [#{err.path}] #{err.message}"
-    end
+    $stderr.write "Schema errors in #{l}\n"
+    errors.each { |err| puts "- [#{err.path}] #{err.message}" }
     abort
   end
 

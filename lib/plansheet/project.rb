@@ -59,4 +59,31 @@ module Plansheet
             type: str
   YAML
   PROJECT_SCHEMA = YAML.safe_load(PROJECT_YAML_SCHEMA)
+  class Project
+    attr_reader :name, :tasks, :done, :desc
+
+    def initialize(options)
+      @name = options["project"]
+
+      @tasks = options["tasks"] || []
+      @done = options["done"] || []
+
+      @desc = options["desc"] || ""
+      @status = options["status"] if options["status"]
+    end
+
+    def status
+      return @status if @status
+
+      if @tasks.count.positive?
+        if @done.count.positive?
+          "wip"
+        else
+          "planning"
+        end
+      else
+        "idea"
+      end
+    end
+  end
 end

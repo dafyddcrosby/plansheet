@@ -1,81 +1,17 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require "kwalify"
-require "yaml"
 require "plansheet"
 
-begin
-  config = YAML.load_file "#{Dir.home}/.plansheet.yml"
-rescue StandardError
-  abort "unable to load plansheet config file"
-end
+config = Plansheet.load_config
 
-project_hash = {}
+project_arr = []
 projects = Dir.glob("*yml", base: config["projects_dir"])
 projects.each do |l|
-  contents = YAML.load_file(File.join(config["projects_dir"], l))
-  validator = Kwalify::Validator.new(Plansheet::PROJECT_SCHEMA)
-  errors = validator.validate(contents)
-  # Check YAML validity
-  if errors && !errors.empty?
-    $stderr.write "Schema errors in #{l}\n"
-    errors.each { |err| puts "- [#{err.path}] #{err.message}" }
-    abort
-  end
-
-  key = l.gsub(".yml", "")
-  contents.each do |project|
-    key = project["project"]
-    project_hash[key] = {
-      name: project["project"]
-    }
-    %w[tasks desc done].each do |k|
-      project_hash[key][k.to_sym] = project[k] if project[k]
-    end
-    project_hash[key][:status] = if project["status"]
-                                   project["status"]
-                                 elsif project_hash[key][:tasks]
-                                   "planning"
-                                 else
-                                   "idea"
-                                 end
-  end
+  project_arr << Plansheet.load_projects_file(File.join(config["projects_dir"], l))
 end
 
-sorted_hash = project_hash.sort_by do |_, v|
-  Plansheet::PROJECT_STATUS_PRIORITY[v[:status]]
-end
-
-def project_minipage(proj)
-  str = String.new
-  str << "\\begin{minipage}{4.5cm}\n"
-  str << "#{proj[:name]} - #{proj[:status]} \\\\\n"
-  proj[:tasks]&.each do |t|
-    str << "$\\square$ #{t} \\\\\n"
-  end
-  str << "\\end{minipage}\n"
-  str
-end
-
-require "date"
-projects_str = String.new
-projects_str << <<~FRONTMATTER
-  ---
-  geometry: margin=1.5cm
-  ---
-  \\thispagestyle{empty}
-
-  # Date: #{Date.today}
-FRONTMATTER
-
-sorted_hash.first(60).each do |_, p|
-  projects_str << project_minipage(p)
-end
-
-output_file = "#{config["output_dir"]}/projects.md"
-puts "Writing to #{output_file}"
+project_arr.flatten!
 Dir.mkdir config["output_dir"] unless Dir.exist? config["output_dir"]
-f = File.open(output_file, "w")
-f.write(projects_str)
-f.close
+
+Plansheet::Sheet.new("#{config["output_dir"]}/projects.md", project_arr)

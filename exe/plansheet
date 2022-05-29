@@ -49,7 +49,7 @@ end
 
 def project_minipage(proj)
   str = String.new
-  str << "\\begin{minipage}{5cm}\n"
+  str << "\\begin{minipage}{4.5cm}\n"
   str << "#{proj[:name]} - #{proj[:status]} \\\\\n"
   proj[:tasks]&.each do |t|
     str << "$\\square$ #{t} \\\\\n"
@@ -62,7 +62,7 @@ require "date"
 projects_str = String.new
 projects_str << <<~FRONTMATTER
   ---
-  geometry: margin=3cm
+  geometry: margin=1.5cm
   ---
   \\thispagestyle{empty}
 

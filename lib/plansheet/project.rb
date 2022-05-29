@@ -44,6 +44,9 @@ module Plansheet
             enum:
               - high
               - low
+          "location":
+            desc: Location (not currently implemented)
+            type: str
           "tasks":
             desc: List of tasks to do
             type: seq
@@ -60,7 +63,7 @@ module Plansheet
   YAML
   PROJECT_SCHEMA = YAML.safe_load(PROJECT_YAML_SCHEMA)
   class Project
-    attr_reader :name, :tasks, :done, :desc
+    attr_reader :name, :tasks, :done, :desc, :location
 
     def initialize(options)
       @name = options["project"]
@@ -68,7 +71,8 @@ module Plansheet
       @tasks = options["tasks"] || []
       @done = options["done"] || []
 
-      @desc = options["desc"] || ""
+      @desc = options["desc"] if options["desc"]
+      @location = options["location"] if options["location"]
       @status = options["status"] if options["status"]
     end
 

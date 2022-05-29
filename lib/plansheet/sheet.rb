@@ -2,6 +2,7 @@
 
 require "date"
 module Plansheet
+  # The Sheet class constructs a Markdown/LaTeX file for use with pandoc
   class Sheet
     def initialize(output_file, project_arr)
       sorted_arr = project_arr.sort_by do |p|
@@ -32,11 +33,19 @@ module Plansheet
     def project_minipage(proj)
       str = String.new
       str << "\\begin{minipage}{4.5cm}\n"
-      str << "#{proj.name} - #{proj.status} \\\\\n"
+      str << project_header(proj)
       proj.tasks.each do |t|
         str << "$\\square$ #{t} \\\\\n"
       end
       str << "\\end{minipage}\n"
+      str
+    end
+
+    def project_header(proj)
+      str = String.new
+      str << "#{proj.name} - #{proj.status}"
+      str << " - #{proj.location}" if proj.location
+      str << " \\\\\n"
       str
     end
   end

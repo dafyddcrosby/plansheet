@@ -15,6 +15,15 @@ module Plansheet
     abort "unable to load plansheet config file"
   end
 
+  def self.load_projects_dir(dir)
+    project_arr = []
+    projects = Dir.glob("*yml", base: dir)
+    projects.each do |l|
+      project_arr << Plansheet.load_projects_file(File.join(dir, l))
+    end
+
+    project_arr.flatten!
+  end
   def self.load_projects_file(path)
     contents = YAML.load_file(path)
     validator = Kwalify::Validator.new(Plansheet::PROJECT_SCHEMA)

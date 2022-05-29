@@ -5,13 +5,8 @@ require "plansheet"
 
 config = Plansheet.load_config
 
-project_arr = []
-projects = Dir.glob("*yml", base: config["projects_dir"])
-projects.each do |l|
-  project_arr << Plansheet.load_projects_file(File.join(config["projects_dir"], l))
-end
+project_arr = Plansheet.load_projects_dir config["projects_dir"]
 
-project_arr.flatten!
 Dir.mkdir config["output_dir"] unless Dir.exist? config["output_dir"]
 
 Plansheet::Sheet.new("#{config["output_dir"]}/projects.md", project_arr)

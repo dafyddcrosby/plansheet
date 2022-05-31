@@ -2,11 +2,38 @@
 # frozen_string_literal: true
 
 require "plansheet"
+require "optparse"
+
+parser = OptionParser.new
+parser.on(
+  "--sheet",
+  "Generates MD/LaTeX project PDF"
+)
+parser.on(
+  "--sort",
+  "Sort project files"
+)
+parser.on(
+  "--cli",
+  "CLI dump of projects (WIP)"
+)
+options = {}
+parser.parse!(into: options)
 
 config = Plansheet.load_config
 
-project_arr = Plansheet.load_projects_dir config["projects_dir"]
+if options[:sheet] || options.empty?
+  project_arr = Plansheet.load_projects_dir config["projects_dir"]
 
-Dir.mkdir config["output_dir"] unless Dir.exist? config["output_dir"]
+  Dir.mkdir config["output_dir"] unless Dir.exist? config["output_dir"]
 
-Plansheet::Sheet.new("#{config["output_dir"]}/projects.md", project_arr)
+  Plansheet::Sheet.new("#{config["output_dir"]}/projects.md", project_arr)
+elsif options[:sort]
+  Plansheet.resort_projects_in_dir config["projects_dir"]
+elsif options[:cli]
+  project_arr = Plansheet.load_projects_dir config["projects_dir"]
+  project_arr.each do |proj|
+    puts proj
+    puts "\n"
+  end
+end

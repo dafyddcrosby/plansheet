@@ -15,29 +15,22 @@ module Plansheet
     abort "unable to load plansheet config file"
   end
 
+  def self.resort_projects_in_dir(dir)
+    project_files = Dir.glob("#{dir}/*yml")
+    project_files.each do |f|
+      pyf = ProjectYAMLFile.new(f)
+      pyf.sort!
+      File.write(f, pyf.yaml_dump)
+    end
+  end
+
   def self.load_projects_dir(dir)
     project_arr = []
     projects = Dir.glob("*yml", base: dir)
     projects.each do |l|
-      project_arr << Plansheet.load_projects_file(File.join(dir, l))
+      project_arr << ProjectYAMLFile.new(File.join(dir, l)).projects
     end
 
     project_arr.flatten!
-  end
-  def self.load_projects_file(path)
-    contents = YAML.load_file(path)
-    validator = Kwalify::Validator.new(Plansheet::PROJECT_SCHEMA)
-    errors = validator.validate(contents)
-    # Check YAML validity
-    if errors && !errors.empty?
-      $stderr.write "Schema errors in #{l}\n"
-      errors.each { |err| puts "- [#{err.path}] #{err.message}" }
-      abort
-    end
-    arr = []
-    contents.each do |project|
-      arr << Plansheet::Project.new(project)
-    end
-    arr
   end
 end

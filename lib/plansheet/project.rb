@@ -164,7 +164,7 @@ module Plansheet
       # Check YAML validity
       return unless errors && !errors.empty?
 
-      $stderr.write "Schema errors in #{l}\n"
+      $stderr.write "Schema errors in #{@path}:\n"
       errors.each { |err| puts "- [#{err.path}] #{err.message}" }
       abort
     end

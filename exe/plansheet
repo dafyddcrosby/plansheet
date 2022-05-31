@@ -32,7 +32,7 @@ elsif options[:sort]
   Plansheet.resort_projects_in_dir config["projects_dir"]
 elsif options[:cli]
   project_arr = Plansheet.load_projects_dir config["projects_dir"]
-  project_arr.each do |proj|
+  project_arr.sort.each do |proj|
     puts proj
     puts "\n"
   end

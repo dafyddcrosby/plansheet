@@ -5,9 +5,7 @@ module Plansheet
   # The Sheet class constructs a Markdown/LaTeX file for use with pandoc
   class Sheet
     def initialize(output_file, project_arr)
-      sorted_arr = project_arr.sort_by do |p|
-        Plansheet::PROJECT_STATUS_PRIORITY[p.status]
-      end
+      sorted_arr = project_arr.sort!
 
       projects_str = String.new
       projects_str << sheet_header

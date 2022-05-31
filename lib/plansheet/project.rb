@@ -13,6 +13,17 @@ module Plansheet
     "done" => 7
   }.freeze
 
+  PROJECT_PRIORITY = {
+    "high" => 1,
+    "medium" => 2,
+    "low" => 3
+  }.freeze
+  PROJECT_PRIORITY_REV = {
+    1 => "high",
+    2 => "medium",
+    3 => "low"
+  }.freeze
+
   # Once there's some stability in plansheet and dc-kwalify, will pre-load this
   # to save the later YAML.load
   PROJECT_YAML_SCHEMA = <<~YAML
@@ -39,13 +50,13 @@ module Plansheet
               - done # project is finished, but want to keep around
                      # for reference, etc.
           "priority":
-            desc: Project priority (not currently implemented)
+            desc: Project priority
             type: str
             enum:
               - high
               - low
           "location":
-            desc: Location (not currently implemented)
+            desc: Location
             type: str
           "tasks":
             desc: List of tasks to do
@@ -63,7 +74,8 @@ module Plansheet
   YAML
   PROJECT_SCHEMA = YAML.safe_load(PROJECT_YAML_SCHEMA)
   class Project
-    attr_reader :name, :tasks, :done, :notes, :location
+    include Comparable
+    attr_reader :name, :tasks, :done, :notes, :location, :priority
 
     def initialize(options)
       @name = options["project"]
@@ -72,8 +84,23 @@ module Plansheet
       @done = options["done"] || []
 
       @notes = options["notes"] if options["notes"]
+      @priority = PROJECT_PRIORITY[options["priority"] || "medium"]
       @location = options["location"] if options["location"]
       @status = options["status"] if options["status"]
+    end
+
+    def <=>(other)
+      if @priority == other.priority
+        # TODO: if planning status, then sort based on tasks? category? alphabetically?
+        PROJECT_STATUS_PRIORITY[status] <=> PROJECT_STATUS_PRIORITY[other.status]
+      else
+        @priority <=> other.priority
+      end
+    end
+
+    # TODO: clean up priority handling
+    def priority_string
+      PROJECT_PRIORITY_REV[@priority]
     end
 
     def status
@@ -92,7 +119,8 @@ module Plansheet
 
     def to_s
       str = String.new
-      str <<  "# #{@name}\n"
+      str << "# #{@name}\n"
+      str << "priority: #{priority_string}\n"
       str << "status: #{status}\n"
       str << "notes: #{notes}\n" unless @notes.nil?
       str << "location: #{location}\n" unless @location.nil?
@@ -106,8 +134,10 @@ module Plansheet
       end
       str
     end
+
     def to_h
       h = { "project" => @name }
+      h["priority"] = priority_string unless priority_string == "medium"
       h["status"] = status unless status == "idea"
       h["notes"] = @notes unless @notes.nil?
       h["location"] = @location unless @location.nil?
@@ -132,17 +162,15 @@ module Plansheet
       validator = Kwalify::Validator.new(Plansheet::PROJECT_SCHEMA)
       errors = validator.validate(@raw)
       # Check YAML validity
-      if errors && !errors.empty?
-        $stderr.write "Schema errors in #{l}\n"
-        errors.each { |err| puts "- [#{err.path}] #{err.message}" }
-        abort
-      end
+      return unless errors && !errors.empty?
+
+      $stderr.write "Schema errors in #{l}\n"
+      errors.each { |err| puts "- [#{err.path}] #{err.message}" }
+      abort
     end
 
     def sort!
-      @projects.sort_by! do |project|
-        Plansheet::PROJECT_STATUS_PRIORITY[project.status]
-      end
+      @projects.sort!
     end
 
     def yaml_dump

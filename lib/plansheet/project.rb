@@ -207,7 +207,14 @@ module Plansheet
     def initialize(path)
       @path = path
       # TODO: this won't GC, inline validation instead?
-      @raw = YAML.load_file(path, permitted_classes: [Date])
+
+      # Handle pre-Ruby 3.1 psych versions (this is brittle)
+      if Psych::VERSION.split('.')[0].to_i >= 4
+        @raw = YAML.load_file(path, permitted_classes: [Date])
+      else
+        @raw = YAML.load_file(path)
+      end
+
       validate_schema
       @projects = @raw.map { |proj| Project.new proj }
     end

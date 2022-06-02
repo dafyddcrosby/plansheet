@@ -18,11 +18,6 @@ module Plansheet
     "medium" => 2,
     "low" => 3
   }.freeze
-  PROJECT_PRIORITY_REV = {
-    1 => "high",
-    2 => "medium",
-    3 => "low"
-  }.freeze
 
   # Once there's some stability in plansheet and dc-kwalify, will pre-load this
   # to save the later YAML.load
@@ -36,6 +31,13 @@ module Plansheet
             desc: Project name
             type: str
             required: yes
+          "priority":
+            desc: Project priority
+            type: str
+            enum:
+              - high
+              - medium
+              - low
           "status":
             desc: The current status of the project
             type: str
@@ -49,15 +51,22 @@ module Plansheet
                         # want to keep around for reference, etc
               - done # project is finished, but want to keep around
                      # for reference, etc.
-          "priority":
-            desc: Project priority
-            type: str
-            enum:
-              - high
-              - low
           "location":
             desc: Location
             type: str
+          "notes":
+            desc: Free-form notes string
+            type: str
+          "externals":
+            desc: List of external commitments, ie who else cares about project completion?
+            type: seq
+            sequence:
+              - type: str
+          "urls":
+            desc: List of URLs that may be pertinent
+            type: seq
+            sequence:
+              - type: str
           "tasks":
             desc: List of tasks to do
             type: seq
@@ -68,25 +77,44 @@ module Plansheet
             type: seq
             sequence:
               - type: str
-          "notes":
-            desc: Free-form notes string
-            type: str
   YAML
   PROJECT_SCHEMA = YAML.safe_load(PROJECT_YAML_SCHEMA)
+
+  # The use of instance_variable_set/get probably seems a bit weird, but the
+  # intent is to avoid object allocation on non-existent project properties, as
+  # well as avoiding a bunch of copy-paste boilerplate when adding a new
+  # property. I suspect I'm guilty of premature optimization here, but it's
+  # easier to do this at the start than untangle that later (ie easier to
+  # unwrap the loops if it's not needed.
   class Project
     include Comparable
-    attr_reader :name, :tasks, :done, :notes, :location, :priority
+
+    # NOTE: The order of these affects presentation!
+    STRING_PROPERTIES = %w[priority status location notes].freeze
+    ARRAY_PROPERTIES = %w[externals urls tasks done].freeze
+
+    ALL_PROPERTIES = STRING_PROPERTIES + ARRAY_PROPERTIES
+
+    attr_reader :name, *ALL_PROPERTIES
 
     def initialize(options)
       @name = options["project"]
 
-      @tasks = options["tasks"] || []
-      @done = options["done"] || []
+      ALL_PROPERTIES.each do |o|
+        instance_variable_set("@#{o}", options[o]) if options[o]
+      end
 
-      @notes = options["notes"] if options["notes"]
-      @priority = PROJECT_PRIORITY[options["priority"] || "medium"]
-      @location = options["location"] if options["location"]
-      @status = options["status"] if options["status"]
+      # The "priority" concept feels flawed - it requires *me* to figure out
+      # the priority, as opposed to the program understanding the project in
+      # relation to other tasks. If I truly understood the priority of all the
+      # projects, I wouldn't need a todo list program. The point is to remove
+      # the need for willpower/executive function/coffee. The long-term value
+      # of this field will diminish as I add more project properties that can
+      # automatically hone in on the most important items based on due
+      # date/external commits/penalties for project failure, etc
+      #
+      # Assume all projects are low priority unless stated otherwise.
+      @priority ||= "low"
     end
 
     def <=>(other)
@@ -94,20 +122,15 @@ module Plansheet
         # TODO: if planning status, then sort based on tasks? category? alphabetically?
         PROJECT_STATUS_PRIORITY[status] <=> PROJECT_STATUS_PRIORITY[other.status]
       else
-        @priority <=> other.priority
+        PROJECT_PRIORITY[@priority] <=> PROJECT_PRIORITY[other.priority]
       end
-    end
-
-    # TODO: clean up priority handling
-    def priority_string
-      PROJECT_PRIORITY_REV[@priority]
     end
 
     def status
       return @status if @status
 
-      if @tasks.count.positive?
-        if @done.count.positive?
+      if @tasks&.count&.positive?
+        if @done&.count&.positive?
           "wip"
         else
           "planning"
@@ -120,29 +143,41 @@ module Plansheet
     def to_s
       str = String.new
       str << "# #{@name}\n"
-      str << "priority: #{priority_string}\n"
-      str << "status: #{status}\n"
-      str << "notes: #{notes}\n" unless @notes.nil?
-      str << "location: #{location}\n" unless @location.nil?
-      str << "tasks:\n" unless @tasks.empty?
-      @tasks.each do |t|
-        str << "- #{t}\n"
+      STRING_PROPERTIES.each do |o|
+        str << stringify_string_property(o)
       end
-      str << "done:\n" unless @done.empty?
-      @done.each do |d|
-        str << "- #{d}\n"
+      ARRAY_PROPERTIES.each do |o|
+        str << stringify_array_property(o)
+      end
+      str
+    end
+
+    def stringify_string_property(prop)
+      if instance_variable_defined? "@#{prop}"
+        "#{prop}: #{instance_variable_get("@#{prop}")}\n"
+      else
+        ""
+      end
+    end
+
+    def stringify_array_property(prop)
+      str = String.new
+      if instance_variable_defined? "@#{prop}"
+        str << "#{prop}:\n"
+        instance_variable_get("@#{prop}").each do |t|
+          str << "- #{t}\n"
+        end
       end
       str
     end
 
     def to_h
       h = { "project" => @name }
-      h["priority"] = priority_string unless priority_string == "medium"
-      h["status"] = status unless status == "idea"
-      h["notes"] = @notes unless @notes.nil?
-      h["location"] = @location unless @location.nil?
-      h["tasks"] = @tasks unless @tasks.empty?
-      h["done"] = @done unless @done.empty?
+      ALL_PROPERTIES.each do |prop|
+        h[prop] = instance_variable_get("@#{prop}") if instance_variable_defined?("@#{prop}")
+      end
+      h.delete "priority" if h.key?("priority") && h["priority"] == "low"
+      h.delete "status" if h.key?("status") && h["status"] == "idea"
       h
     end
   end

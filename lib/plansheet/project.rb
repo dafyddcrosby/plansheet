@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "yaml"
+require "date"
 
 module Plansheet
   PROJECT_STATUS_PRIORITY = {
@@ -57,6 +58,12 @@ module Plansheet
           "notes":
             desc: Free-form notes string
             type: str
+          "due":
+            desc: Due date of the task (WIP)
+            type: date
+          "defer":
+            desc: Defer task until this day (WIP)
+            type: date
           "externals":
             desc: List of external commitments, ie who else cares about project completion?
             type: seq
@@ -91,9 +98,10 @@ module Plansheet
 
     # NOTE: The order of these affects presentation!
     STRING_PROPERTIES = %w[priority status location notes].freeze
+    DATE_PROPERTIES = %w[due defer].freeze
     ARRAY_PROPERTIES = %w[externals urls tasks done].freeze
 
-    ALL_PROPERTIES = STRING_PROPERTIES + ARRAY_PROPERTIES
+    ALL_PROPERTIES = STRING_PROPERTIES + DATE_PROPERTIES + ARRAY_PROPERTIES
 
     attr_reader :name, *ALL_PROPERTIES
 
@@ -146,6 +154,9 @@ module Plansheet
       STRING_PROPERTIES.each do |o|
         str << stringify_string_property(o)
       end
+      DATE_PROPERTIES.each do |o|
+        str << stringify_string_property(o)
+      end
       ARRAY_PROPERTIES.each do |o|
         str << stringify_array_property(o)
       end
@@ -153,6 +164,14 @@ module Plansheet
     end
 
     def stringify_string_property(prop)
+      if instance_variable_defined? "@#{prop}"
+        "#{prop}: #{instance_variable_get("@#{prop}")}\n"
+      else
+        ""
+      end
+    end
+
+    def stringify_date_property(prop)
       if instance_variable_defined? "@#{prop}"
         "#{prop}: #{instance_variable_get("@#{prop}")}\n"
       else
@@ -188,7 +207,7 @@ module Plansheet
     def initialize(path)
       @path = path
       # TODO: this won't GC, inline validation instead?
-      @raw = YAML.load_file(path)
+      @raw = YAML.load_file(path, permitted_classes: [Date])
       validate_schema
       @projects = @raw.map { |proj| Project.new proj }
     end

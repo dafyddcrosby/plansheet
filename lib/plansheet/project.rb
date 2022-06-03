@@ -126,12 +126,23 @@ module Plansheet
     end
 
     def <=>(other)
-      if @priority == other.priority
-        # TODO: if planning status, then sort based on tasks? category? alphabetically?
-        PROJECT_STATUS_PRIORITY[status] <=> PROJECT_STATUS_PRIORITY[other.status]
-      else
-        PROJECT_PRIORITY[@priority] <=> PROJECT_PRIORITY[other.priority]
+      ret_val = 0
+      %i[
+        compare_priority
+        compare_status
+      ].each do |method|
+        ret_val = send(method, other)
+        break if ret_val != 0
       end
+      ret_val
+    end
+
+    def compare_priority(other)
+      PROJECT_PRIORITY[@priority] <=> PROJECT_PRIORITY[other.priority]
+    end
+
+    def compare_status(other)
+      PROJECT_STATUS_PRIORITY[status] <=> PROJECT_STATUS_PRIORITY[other.status]
     end
 
     def status
@@ -209,11 +220,11 @@ module Plansheet
       # TODO: this won't GC, inline validation instead?
 
       # Handle pre-Ruby 3.1 psych versions (this is brittle)
-      if Psych::VERSION.split('.')[0].to_i >= 4
-        @raw = YAML.load_file(path, permitted_classes: [Date])
-      else
-        @raw = YAML.load_file(path)
-      end
+      @raw = if Psych::VERSION.split(".")[0].to_i >= 4
+               YAML.load_file(path, permitted_classes: [Date])
+             else
+               YAML.load_file(path)
+             end
 
       validate_schema
       @projects = @raw.map { |proj| Project.new proj }

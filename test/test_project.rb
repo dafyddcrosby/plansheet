@@ -36,4 +36,34 @@ class TestProject < Minitest::Test
       assert_equal e, Plansheet::Project.new(x).compare_status(Plansheet::Project.new(y))
     end
   end
+
+  DUE_TEST_CASES = [
+    [{}, {}, 0],
+    [{ "due" => Date.today }, {}, -1],
+    [{}, { "due" => Date.today },  1],
+    [{ "due" => Date.today }, { "due" => Date.today }, 0],
+    [{ "due" => (Date.today + 1) }, { "due" => Date.today }, 1],
+    [{ "due" => Date.today }, { "due" => Date.today + 1 }, -1]
+  ].freeze
+  def test_due_comparison
+    DUE_TEST_CASES.each do |x, y, e|
+      assert_equal e, Plansheet::Project.new(x).compare_due(Plansheet::Project.new(y))
+    end
+  end
+
+  DEFER_TEST_CASES = [
+    [{}, {}, 0],
+    [{ "defer" => Date.today }, {}, 0],
+    [{}, { "defer" => Date.today }, 0],
+    [{ "defer" => Date.today }, { "defer" => Date.today }, 0],
+    [{}, { "defer" => Date.today + 1 }, -1],
+    [{ "defer" => Date.today + 1 }, {}, 1],
+    [{ "defer" => Date.today - 1 }, {}, 0],
+    [{}, { "defer" => Date.today - 1 }, 0]
+  ].freeze
+  def test_defer_comparison
+    DEFER_TEST_CASES.each do |x, y, e|
+      assert_equal e, Plansheet::Project.new(x).compare_defer(Plansheet::Project.new(y))
+    end
+  end
 end

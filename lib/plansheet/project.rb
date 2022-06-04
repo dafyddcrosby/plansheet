@@ -59,10 +59,10 @@ module Plansheet
             desc: Free-form notes string
             type: str
           "due":
-            desc: Due date of the task (WIP)
+            desc: Due date of the task
             type: date
           "defer":
-            desc: Defer task until this day (WIP)
+            desc: Defer task until this day
             type: date
           "externals":
             desc: List of external commitments, ie who else cares about project completion?
@@ -129,6 +129,8 @@ module Plansheet
       ret_val = 0
       %i[
         compare_priority
+        compare_due
+        compare_defer
         compare_status
       ].each do |method|
         ret_val = send(method, other)
@@ -143,6 +145,27 @@ module Plansheet
 
     def compare_status(other)
       PROJECT_STATUS_PRIORITY[status] <=> PROJECT_STATUS_PRIORITY[other.status]
+    end
+
+    def compare_due(other)
+      # -1 is receiving object being older
+
+      # Handle nil
+      if @due.nil?
+        return 0 if other.due.nil?
+
+        return 1
+      elsif other.due.nil?
+        return -1
+      end
+
+      @due <=> other.due
+    end
+
+    def compare_defer(other)
+      receiver = @defer.nil? || @defer < Date.today ? Date.today : @defer
+      comparison = other.defer.nil? || other.defer < Date.today ? Date.today : other.defer
+      receiver <=> comparison
     end
 
     def status

@@ -66,4 +66,37 @@ class TestProject < Minitest::Test
       assert_equal e, Plansheet::Project.new(x).compare_defer(Plansheet::Project.new(y))
     end
   end
+
+  DEPENDENCY_TEST_CASES = [
+    [{}, {}, 0],
+    [{ "project" => "foo" }, { "dependencies" => ["foo"] }, -1],
+    [{ "project" => "Foo" }, { "dependencies" => ["foo"] }, -1],
+    [{ "project" => "foo" }, { "dependencies" => ["bar"] }, 0],
+    [{ "project" => "foo" }, { "dependencies" => [] }, 0],
+    [{ "dependencies" => ["foo"] }, { "project" => "foo" }, 1],
+    [{ "dependencies" => ["foo"] }, { "project" => "Foo" }, 1],
+    [{ "dependencies" => ["bar"] }, { "project" => "foo" }, 0],
+    [{ "dependencies" => [] }, { "project" => "foo" }, 0]
+  ].freeze
+  def test_dependency_comparison
+    DEPENDENCY_TEST_CASES.each do |x, y, e|
+      assert_equal e, Plansheet::Project.new(x).compare_dependency(Plansheet::Project.new(y))
+    end
+  end
+
+  COMPLETENESS_TEST_CASES = [
+    [{}, {}, 0],
+    [{ "status" => "dropped" }, {}, 1],
+    [{ "status" => "done" }, {}, 1],
+    [{}, { "status" => "done" }, -1],
+    [{}, { "status" => "dropped" }, -1],
+    [{ "status" => "done" }, { "status" => "done" }, 0],
+    [{ "status" => "done" }, { "status" => "dropped" }, 0],
+    [{ "status" => "dropped" }, { "status" => "done" }, 0]
+  ].freeze
+  def test_completeness_comparison
+    COMPLETENESS_TEST_CASES.each do |x, y, e|
+      assert_equal e, Plansheet::Project.new(x).compare_completeness(Plansheet::Project.new(y))
+    end
+  end
 end

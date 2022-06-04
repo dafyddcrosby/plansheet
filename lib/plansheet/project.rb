@@ -64,6 +64,11 @@ module Plansheet
           "defer":
             desc: Defer task until this day
             type: date
+          "dependencies":
+            desc: The names of projects that need to be completed before this project can be started/completed
+            type: seq
+            sequence:
+              - type: str
           "externals":
             desc: List of external commitments, ie who else cares about project completion?
             type: seq
@@ -99,7 +104,7 @@ module Plansheet
     # NOTE: The order of these affects presentation!
     STRING_PROPERTIES = %w[priority status location notes].freeze
     DATE_PROPERTIES = %w[due defer].freeze
-    ARRAY_PROPERTIES = %w[externals urls tasks done].freeze
+    ARRAY_PROPERTIES = %w[dependencies externals urls tasks done].freeze
 
     ALL_PROPERTIES = STRING_PROPERTIES + DATE_PROPERTIES + ARRAY_PROPERTIES
 
@@ -128,6 +133,8 @@ module Plansheet
     def <=>(other)
       ret_val = 0
       %i[
+        compare_completeness
+        compare_dependency
         compare_priority
         compare_due
         compare_defer
@@ -168,6 +175,30 @@ module Plansheet
       receiver <=> comparison
     end
 
+    def compare_dependency(other)
+      return 0 if @dependencies.nil? && other.dependencies.nil?
+
+      if @dependencies.nil?
+        return -1 if other.dependencies.any? do |dep|
+          @name.downcase == dep.downcase
+        end
+      elsif @dependencies.any? do |dep|
+              other.name.downcase == dep.downcase
+            end
+        return 1
+      end
+      0
+    end
+
+    # Projects that are dropped or done are considered "complete", insofar as
+    # they are only kept around for later reference.
+    def compare_completeness(other)
+      return 0 if dropped_or_done? && other.dropped_or_done?
+      return 0 if !dropped_or_done? && !other.dropped_or_done?
+
+      dropped_or_done? ? 1 : -1
+    end
+
     def status
       return @status if @status
 
@@ -180,6 +211,10 @@ module Plansheet
       else
         "idea"
       end
+    end
+
+    def dropped_or_done?
+      status == "dropped" || status == "done"
     end
 
     def to_s

@@ -32,7 +32,7 @@ module Plansheet
       str = String.new
       str << "\\begin{minipage}{4.5cm}\n"
       str << project_header(proj)
-      proj.tasks.each do |t|
+      proj&.tasks&.each do |t|
         str << "$\\square$ #{t} \\\\\n"
       end
       str << "\\end{minipage}\n"

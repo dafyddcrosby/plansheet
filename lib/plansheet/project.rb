@@ -92,6 +92,11 @@ module Plansheet
             type: seq
             sequence:
               - type: str
+          "tags":
+            desc: List of tags (WIP)
+            type: seq
+            sequence:
+              - type: str
   YAML
   PROJECT_SCHEMA = YAML.safe_load(PROJECT_YAML_SCHEMA)
 
@@ -107,7 +112,7 @@ module Plansheet
     # NOTE: The order of these affects presentation!
     STRING_PROPERTIES = %w[priority status location notes].freeze
     DATE_PROPERTIES = %w[due defer last_reviewed].freeze
-    ARRAY_PROPERTIES = %w[dependencies externals urls tasks done].freeze
+    ARRAY_PROPERTIES = %w[dependencies externals urls tasks done tags].freeze
 
     ALL_PROPERTIES = STRING_PROPERTIES + DATE_PROPERTIES + ARRAY_PROPERTIES
 

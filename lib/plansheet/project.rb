@@ -109,6 +109,14 @@ module Plansheet
   class Project
     include Comparable
 
+    DEFAULT_COMPARISON_ORDER = %w[
+      completeness
+      dependency
+      priority
+      defer
+      due
+      status
+    ].map { |x| "compare_#{x}".to_sym }.freeze
     # NOTE: The order of these affects presentation!
     STRING_PROPERTIES = %w[priority status location notes].freeze
     DATE_PROPERTIES = %w[due defer last_reviewed].freeze
@@ -140,14 +148,7 @@ module Plansheet
 
     def <=>(other)
       ret_val = 0
-      %i[
-        compare_completeness
-        compare_dependency
-        compare_priority
-        compare_defer
-        compare_due
-        compare_status
-      ].each do |method|
+      DEFAULT_COMPARISON_ORDER.each do |method|
         ret_val = send(method, other)
         break if ret_val != 0
       end

@@ -64,6 +64,9 @@ module Plansheet
           "defer":
             desc: Defer task until this day
             type: date
+          "last_reviewed":
+            desc: When the project was last reviewed (WIP)
+            type: date
           "dependencies":
             desc: The names of projects that need to be completed before this project can be started/completed
             type: seq
@@ -103,7 +106,7 @@ module Plansheet
 
     # NOTE: The order of these affects presentation!
     STRING_PROPERTIES = %w[priority status location notes].freeze
-    DATE_PROPERTIES = %w[due defer].freeze
+    DATE_PROPERTIES = %w[due defer last_reviewed].freeze
     ARRAY_PROPERTIES = %w[dependencies externals urls tasks done].freeze
 
     ALL_PROPERTIES = STRING_PROPERTIES + DATE_PROPERTIES + ARRAY_PROPERTIES

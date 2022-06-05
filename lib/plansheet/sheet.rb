@@ -10,7 +10,7 @@ module Plansheet
       projects_str = String.new
       projects_str << sheet_header
 
-      sorted_arr.first(60).each do |p|
+      sorted_arr.each do |p|
         projects_str << project_minipage(p)
       end
       puts "Writing to #{output_file}"

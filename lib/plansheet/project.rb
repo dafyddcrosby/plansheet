@@ -136,8 +136,8 @@ module Plansheet
         compare_completeness
         compare_dependency
         compare_priority
-        compare_due
         compare_defer
+        compare_due
         compare_status
       ].each do |method|
         ret_val = send(method, other)

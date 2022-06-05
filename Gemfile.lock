@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    plansheet (0.11.0)
+    plansheet (0.11.1)
       dc-kwalify (~> 1.0)
 
 GEM

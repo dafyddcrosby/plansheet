@@ -8,10 +8,11 @@ module Plansheet
     "wip" => 1,
     "ready" => 2,
     "blocked" => 3,
-    "planning" => 4,
-    "idea" => 5,
-    "dropped" => 6,
-    "done" => 7
+    "waiting" => 4,
+    "planning" => 5,
+    "idea" => 6,
+    "dropped" => 7,
+    "done" => 8
   }.freeze
 
   PROJECT_PRIORITY = {
@@ -45,7 +46,8 @@ module Plansheet
             enum:
               - wip # project is a work-in-progress
               - ready # project is fully scoped, ready to go
-              - blocked # project is blocked, but otherwise ready/wip
+              - waiting # project in waiting on some external person/event
+              - blocked # project is blocked by another project, but otherwise ready/wip
               - planning # project in planning phase
               - idea # project is little more than an idea
               - dropped # project has been explicitly dropped, but

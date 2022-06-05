@@ -17,6 +17,10 @@ parser.on(
   "--cli",
   "CLI dump of projects (WIP)"
 )
+parser.on(
+  "--location_filter LOCATION",
+  "location filter for CLI dump (WIP)"
+)
 options = {}
 parser.parse!(into: options)
 
@@ -32,7 +36,10 @@ elsif options[:sort]
   Plansheet.resort_projects_in_dir config["projects_dir"]
 elsif options[:cli]
   project_arr = Plansheet.load_projects_dir config["projects_dir"]
-  project_arr.sort.each do |proj|
+  project_arr.sort!
+  project_arr.delete_if {|x| x.status == "dropped" || x.status == "done" }
+  project_arr.select! {|x| x.location == options[:location_filter]} if options[:location_filter]
+  project_arr.each do |proj|
     puts proj
     puts "\n"
   end

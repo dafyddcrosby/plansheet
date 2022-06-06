@@ -240,7 +240,8 @@ module Plansheet
     def status
       return @status if @status
       return recurring_status if recurring?
-      return task_based_status if (@tasks || @done)
+      return task_based_status if @tasks || @done
+
       # TODO: return done if done count is positive...
 
       "idea"
@@ -260,18 +261,19 @@ module Plansheet
 
     def recurring_status
       # add frequency to last_done
-      unless @last_done
-        # This recurring project is being done for the first time
-        task_based_status
-      else
+      if @last_done
         # This project has been done once before
         subsequent_recurring_status
+      else
+        # This recurring project is being done for the first time
+        task_based_status
       end
     end
 
     def subsequent_recurring_status
       return "done" if @lead_time && defer > Date.today
       return "done" if due > Date.today
+
       task_based_status
     end
 
@@ -284,6 +286,7 @@ module Plansheet
     def due
       return @due if @due
       return recurring_due_date if recurring?
+
       nil
     end
 
@@ -298,6 +301,7 @@ module Plansheet
     def defer
       return @defer if @defer
       return lead_time_deferral if @lead_time && due
+
       nil
     end
 

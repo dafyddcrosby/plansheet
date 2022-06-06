@@ -1,5 +1,3 @@
-inherit_from: .rubocop_todo.yml
-
 AllCops:
   TargetRubyVersion: 2.6
   NewCops: enable
@@ -15,3 +13,9 @@ Style/StringLiteralsInInterpolation:
 
 Layout/LineLength:
   Max: 120
+
+Metrics:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false

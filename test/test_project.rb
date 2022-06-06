@@ -27,7 +27,7 @@ class TestProject < Minitest::Test
 
     # Subsequent recurring due
     [{ "frequency" => "1w", "last_done" => Date.today - 7 }, Date.today],
-    [{ "frequency" => "1w", "last_done" => Date.today - 1 }, Date.today + 6],
+    [{ "frequency" => "1w", "last_done" => Date.today - 1 }, Date.today + 6]
   ].freeze
   def test_due
     # Empty project
@@ -44,7 +44,7 @@ class TestProject < Minitest::Test
     [{}, "idea"],
 
     # Explicit status
-    [{ "status" => "idea" }, "idea" ],
+    [{ "status" => "idea" }, "idea"],
     [{ "status" => "dropped" }, "dropped"],
     [{ "status" => "done" }, "done"],
     [{ "status" => "wip" }, "wip"],
@@ -63,22 +63,22 @@ class TestProject < Minitest::Test
 
     # First-time recurring status
     [
-      { "frequency"=> "1w" },
+      { "frequency" => "1w" },
       "idea"
     ],
     [
-      { "frequency"=> "1w", "tasks" => ["foo"] },
+      { "frequency" => "1w", "tasks" => ["foo"] },
       "ready"
     ],
     [
-      { "frequency"=> "1w", "tasks" => ["foo"], "done" => ["bar"] },
+      { "frequency" => "1w", "tasks" => ["foo"], "done" => ["bar"] },
       "wip"
     ],
     # Subsequent recurring status
     [
-      { "frequency"=> "1w", "last_done" => Date.today - 1},
+      { "frequency" => "1w", "last_done" => Date.today - 1 },
       "done"
-    ],
+    ]
   ].freeze
   def test_status
     STATUS_TEST_CASES.each do |proj, status|
@@ -192,7 +192,7 @@ class TestProject < Minitest::Test
       },
       defer: Date.today + 7
     }
-  ]
+  ].freeze
   def test_lead_time
     assert_nil Plansheet::Project.new({}).defer
     LEAD_TIME_TEST_CASES.each do |t|
@@ -214,7 +214,7 @@ class TestProject < Minitest::Test
       status: "ready",
       defer: Date.today
     }
-  ]
+  ].freeze
   def test_recurring_projects
     RECURRING_PROJECT_TEST_CASES.each do |t|
       x = Plansheet::Project.new(t[:proj])

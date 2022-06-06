@@ -60,14 +60,32 @@ module Plansheet
           "notes":
             desc: Free-form notes string
             type: str
+          "time_estimate":
+            desc: The estimated amount of time before a project is completed
+            type: str
+          "frequency":
+            desc: The amount of time before a recurring project moves to ready status again from when it was last done (WIP)
+            type: str
+          "lead_time":
+            desc: The amount of time before a recurring project is "due" moved to ready where the project (sort of a deferral mechanism) (WIP)
+            type: str
           "due":
             desc: Due date of the task
             type: date
           "defer":
             desc: Defer task until this day
             type: date
+          "created_on":
+            desc: When the project was created
+            type: date
+          "starts_on":
+            desc: For ICS (WIP)
+            type: date
           "last_reviewed":
             desc: When the project was last reviewed (WIP)
+            type: date
+          "last_done":
+            desc: When the recurring project was last completed (WIP)
             type: date
           "dependencies":
             desc: The names of projects that need to be completed before this project can be started/completed
@@ -120,8 +138,8 @@ module Plansheet
       status
     ].map { |x| "compare_#{x}".to_sym }.freeze
     # NOTE: The order of these affects presentation!
-    STRING_PROPERTIES = %w[priority status location notes].freeze
-    DATE_PROPERTIES = %w[due defer last_reviewed].freeze
+    STRING_PROPERTIES = %w[priority status location notes time_estimate frequency lead_time].freeze
+    DATE_PROPERTIES = %w[due defer created_on starts_on last_done last_reviewed].freeze
     ARRAY_PROPERTIES = %w[dependencies externals urls tasks done tags].freeze
 
     ALL_PROPERTIES = STRING_PROPERTIES + DATE_PROPERTIES + ARRAY_PROPERTIES

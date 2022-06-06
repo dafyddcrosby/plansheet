@@ -78,7 +78,10 @@ class TestProject < Minitest::Test
     [
       { "frequency" => "1w", "last_done" => Date.today - 1 },
       "done"
-    ]
+    ],
+
+    # Inferred 'done' with 'completed_on'
+    [{ "completed_on" => Date.today }, "done"]
   ].freeze
   def test_status
     STATUS_TEST_CASES.each do |proj, status|

@@ -77,6 +77,9 @@ module Plansheet
           "defer":
             desc: Defer task until this day
             type: date
+          "completed_on":
+            desc: When the (non-recurring) project was completed
+            type: date
           "created_on":
             desc: When the project was created
             type: date
@@ -148,7 +151,7 @@ module Plansheet
     ].map { |x| "compare_#{x}".to_sym }.freeze
     # NOTE: The order of these affects presentation!
     STRING_PROPERTIES = %w[priority status location notes time_estimate frequency lead_time].freeze
-    DATE_PROPERTIES = %w[due defer created_on starts_on last_done last_reviewed].freeze
+    DATE_PROPERTIES = %w[due defer completed_on created_on starts_on last_done last_reviewed].freeze
     ARRAY_PROPERTIES = %w[dependencies externals urls tasks done tags].freeze
 
     ALL_PROPERTIES = STRING_PROPERTIES + DATE_PROPERTIES + ARRAY_PROPERTIES
@@ -241,8 +244,7 @@ module Plansheet
       return @status if @status
       return recurring_status if recurring?
       return task_based_status if @tasks || @done
-
-      # TODO: return done if done count is positive...
+      return "done" if @completed_on && @tasks.nil?
 
       "idea"
     end

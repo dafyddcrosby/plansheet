@@ -2,6 +2,8 @@
 
 require "yaml"
 require "date"
+require_relative "project/yaml"
+require_relative "project/stringify"
 
 module Plansheet
   PROJECT_STATUS_PRIORITY = {
@@ -20,110 +22,6 @@ module Plansheet
     "medium" => 2,
     "low" => 3
   }.freeze
-
-  # Once there's some stability in plansheet and dc-kwalify, will pre-load this
-  # to save the later YAML.load
-  PROJECT_YAML_SCHEMA = <<~YAML
-    desc: dc-tasks project schema
-    type: seq
-    sequence:
-      - type: map
-        mapping:
-          "project":
-            desc: Project name
-            type: str
-            required: yes
-          "priority":
-            desc: Project priority
-            type: str
-            enum:
-              - high
-              - medium
-              - low
-          "status":
-            desc: The current status of the project
-            type: str
-            enum:
-              - wip # project is a work-in-progress
-              - ready # project has tasks, ready to go
-              - waiting # project in waiting on some external person/event
-              - blocked # project is blocked by another project, but otherwise ready/wip
-              - planning # project in planning phase (set manually)
-              - idea # project is little more than an idea
-              - dropped # project has been explicitly dropped, but
-                        # want to keep around for reference, etc
-              - done # project is finished, but want to keep around
-                     # for reference, etc.
-          "location":
-            desc: Location
-            type: str
-          "notes":
-            desc: Free-form notes string
-            type: str
-          "time_estimate":
-            desc: The estimated amount of time before a project is completed
-            type: str
-          "frequency":
-            desc: The amount of time before a recurring project moves to ready status again from when it was last done (WIP)
-            type: str
-            pattern: /\\d+[dwDW]/
-          "lead_time":
-            desc: The amount of time before a recurring project is "due" moved to ready where the project (sort of a deferral mechanism) (WIP)
-            type: str
-            pattern: /\\d+[dwDW]/
-          "due":
-            desc: Due date of the task
-            type: date
-          "defer":
-            desc: Defer task until this day
-            type: date
-          "completed_on":
-            desc: When the (non-recurring) project was completed
-            type: date
-          "created_on":
-            desc: When the project was created
-            type: date
-          "starts_on":
-            desc: For ICS (WIP)
-            type: date
-          "last_reviewed":
-            desc: When the project was last reviewed (WIP)
-            type: date
-          "last_done":
-            desc: When the recurring project was last completed (WIP)
-            type: date
-          "dependencies":
-            desc: The names of projects that need to be completed before this project can be started/completed
-            type: seq
-            sequence:
-              - type: str
-          "externals":
-            desc: List of external commitments, ie who else cares about project completion?
-            type: seq
-            sequence:
-              - type: str
-          "urls":
-            desc: List of URLs that may be pertinent
-            type: seq
-            sequence:
-              - type: str
-          "tasks":
-            desc: List of tasks to do
-            type: seq
-            sequence:
-              - type: str
-          "done":
-            desc: List of tasks which have been completed
-            type: seq
-            sequence:
-              - type: str
-          "tags":
-            desc: List of tags (WIP)
-            type: seq
-            sequence:
-              - type: str
-  YAML
-  PROJECT_SCHEMA = YAML.safe_load(PROJECT_YAML_SCHEMA)
 
   def self.parse_date_duration(str)
     return Regexp.last_match(1).to_i if str.strip.match(/(\d+)[dD]/)
@@ -320,48 +218,6 @@ module Plansheet
       status == "dropped" || status == "done"
     end
 
-    def to_s
-      str = String.new
-      str << "# #{@name}\n"
-      STRING_PROPERTIES.each do |o|
-        str << stringify_string_property(o)
-      end
-      DATE_PROPERTIES.each do |o|
-        str << stringify_string_property(o)
-      end
-      ARRAY_PROPERTIES.each do |o|
-        str << stringify_array_property(o)
-      end
-      str
-    end
-
-    def stringify_string_property(prop)
-      if instance_variable_defined? "@#{prop}"
-        "#{prop}: #{instance_variable_get("@#{prop}")}\n"
-      else
-        ""
-      end
-    end
-
-    def stringify_date_property(prop)
-      if instance_variable_defined? "@#{prop}"
-        "#{prop}: #{instance_variable_get("@#{prop}")}\n"
-      else
-        ""
-      end
-    end
-
-    def stringify_array_property(prop)
-      str = String.new
-      if instance_variable_defined? "@#{prop}"
-        str << "#{prop}:\n"
-        instance_variable_get("@#{prop}").each do |t|
-          str << "- #{t}\n"
-        end
-      end
-      str
-    end
-
     def to_h
       h = { "project" => @name }
       ALL_PROPERTIES.each do |prop|
@@ -370,44 +226,6 @@ module Plansheet
       h.delete "priority" if h.key?("priority") && h["priority"] == "low"
       h.delete "status" if h.key?("status") && h["status"] == "idea"
       h
-    end
-  end
-
-  class ProjectYAMLFile
-    attr_reader :projects
-
-    def initialize(path)
-      @path = path
-      # TODO: this won't GC, inline validation instead?
-
-      # Handle pre-Ruby 3.1 psych versions (this is brittle)
-      @raw = if Psych::VERSION.split(".")[0].to_i >= 4
-               YAML.load_file(path, permitted_classes: [Date])
-             else
-               YAML.load_file(path)
-             end
-
-      validate_schema
-      @projects = @raw.map { |proj| Project.new proj }
-    end
-
-    def validate_schema
-      validator = Kwalify::Validator.new(Plansheet::PROJECT_SCHEMA)
-      errors = validator.validate(@raw)
-      # Check YAML validity
-      return unless errors && !errors.empty?
-
-      $stderr.write "Schema errors in #{@path}:\n"
-      errors.each { |err| puts "- [#{err.path}] #{err.message}" }
-      abort
-    end
-
-    def sort!
-      @projects.sort!
-    end
-
-    def yaml_dump
-      YAML.dump(@projects.map(&:to_h))
     end
   end
 end

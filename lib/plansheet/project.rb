@@ -45,10 +45,10 @@ module Plansheet
             type: str
             enum:
               - wip # project is a work-in-progress
-              - ready # project is fully scoped, ready to go
+              - ready # project has tasks, ready to go
               - waiting # project in waiting on some external person/event
               - blocked # project is blocked by another project, but otherwise ready/wip
-              - planning # project in planning phase
+              - planning # project in planning phase (set manually)
               - idea # project is little more than an idea
               - dropped # project has been explicitly dropped, but
                         # want to keep around for reference, etc
@@ -66,9 +66,11 @@ module Plansheet
           "frequency":
             desc: The amount of time before a recurring project moves to ready status again from when it was last done (WIP)
             type: str
+            pattern: /\\d+[dwDW]/
           "lead_time":
             desc: The amount of time before a recurring project is "due" moved to ready where the project (sort of a deferral mechanism) (WIP)
             type: str
+            pattern: /\\d+[dwDW]/
           "due":
             desc: Due date of the task
             type: date
@@ -119,6 +121,13 @@ module Plansheet
               - type: str
   YAML
   PROJECT_SCHEMA = YAML.safe_load(PROJECT_YAML_SCHEMA)
+
+  def self.parse_date_duration(str)
+    return Regexp.last_match(1).to_i if str.strip.match(/(\d+)[dD]/)
+    return (Regexp.last_match(1).to_i * 7) if str.strip.match(/(\d+)[wW]/)
+
+    raise "Can't parse time duration string #{str}"
+  end
 
   # The use of instance_variable_set/get probably seems a bit weird, but the
   # intent is to avoid object allocation on non-existent project properties, as
@@ -230,16 +239,75 @@ module Plansheet
 
     def status
       return @status if @status
+      return recurring_status if recurring?
+      return task_based_status if (@tasks || @done)
+      # TODO: return done if done count is positive...
 
-      if @tasks&.count&.positive?
-        if @done&.count&.positive?
-          "wip"
-        else
-          "planning"
-        end
+      "idea"
+    end
+
+    def task_based_status
+      if @tasks&.count&.positive? && @done&.count&.positive?
+        "wip"
+      elsif @tasks&.count&.positive?
+        "ready"
+      elsif @done&.count&.positive?
+        "done"
       else
         "idea"
       end
+    end
+
+    def recurring_status
+      # add frequency to last_done
+      unless @last_done
+        # This recurring project is being done for the first time
+        task_based_status
+      else
+        # This project has been done once before
+        subsequent_recurring_status
+      end
+    end
+
+    def subsequent_recurring_status
+      return "done" if @lead_time && defer > Date.today
+      return "done" if due > Date.today
+      task_based_status
+    end
+
+    def process_recurring
+      # TODO: Tasks will be moved from done->tasks if recurring project is
+      # starting again
+    end
+
+    # Due date either explicit or recurring
+    def due
+      return @due if @due
+      return recurring_due_date if recurring?
+      nil
+    end
+
+    def recurring_due_date
+      if @last_done
+        @last_done + Plansheet.parse_date_duration(@frequency)
+      else
+        Date.today
+      end
+    end
+
+    def defer
+      return @defer if @defer
+      return lead_time_deferral if @lead_time && due
+      nil
+    end
+
+    def lead_time_deferral
+      [(due - Plansheet.parse_date_duration(@lead_time)),
+       Date.today].max
+    end
+
+    def recurring?
+      !@frequency.nil?
     end
 
     def dropped_or_done?

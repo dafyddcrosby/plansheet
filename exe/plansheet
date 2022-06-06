@@ -37,8 +37,8 @@ elsif options[:sort]
 elsif options[:cli]
   project_arr = Plansheet.load_projects_dir config["projects_dir"]
   project_arr.sort!
-  project_arr.delete_if {|x| x.status == "dropped" || x.status == "done" }
-  project_arr.select! {|x| x.location == options[:location_filter]} if options[:location_filter]
+  project_arr.delete_if { |x| x.status == "dropped" || x.status == "done" }
+  project_arr.select! { |x| x.location == options[:location_filter] } if options[:location_filter]
   project_arr.each do |proj|
     puts proj
     puts "\n"

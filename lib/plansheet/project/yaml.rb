@@ -136,7 +136,7 @@ module Plansheet
 
     def namespace
       # TODO: yikes
-      Pathname.new(@path).basename.to_s.gsub(/\.yml$/, "")
+      ::Pathname.new(@path).basename.to_s.gsub(/\.yml$/, "")
     end
 
     def validate_schema

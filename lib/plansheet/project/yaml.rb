@@ -20,7 +20,6 @@ module Plansheet
           "namespace":
             desc: Namespace of a group of projects (for organizing)
             type: str
-            required: yes
           "priority":
             desc: Project priority
             type: str

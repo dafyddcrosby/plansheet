@@ -16,6 +16,10 @@ module Plansheet
             desc: Project name
             type: str
             required: yes
+          "namespace":
+            desc: Namespace of a group of projects (for organizing)
+            type: str
+            required: yes
           "priority":
             desc: Project priority
             type: str
@@ -124,7 +128,15 @@ module Plansheet
 
       validate_schema
       @raw ||= []
-      @projects = @raw.map { |proj| Project.new proj }
+      @projects = @raw.map do |proj|
+        proj["namespace"] = namespace
+        Project.new proj
+      end
+    end
+
+    def namespace
+      # TODO: yikes
+      Pathname.new(@path).basename.to_s.gsub(/\.yml$/, "")
     end
 
     def validate_schema

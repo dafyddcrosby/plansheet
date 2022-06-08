@@ -48,7 +48,8 @@ module Plansheet
       status
     ].map { |x| "compare_#{x}".to_sym }.freeze
     # NOTE: The order of these affects presentation!
-    STRING_PROPERTIES = %w[priority status location notes time_estimate frequency lead_time].freeze
+    # namespace is derived from file name
+    STRING_PROPERTIES = %w[namespace priority status location notes time_estimate frequency lead_time].freeze
     DATE_PROPERTIES = %w[due defer completed_on created_on starts_on last_done last_reviewed].freeze
     ARRAY_PROPERTIES = %w[dependencies externals urls tasks done tags].freeze
 

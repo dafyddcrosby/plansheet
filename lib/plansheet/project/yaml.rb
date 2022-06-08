@@ -123,6 +123,7 @@ module Plansheet
              end
 
       validate_schema
+      @raw ||= []
       @projects = @raw.map { |proj| Project.new proj }
     end
 

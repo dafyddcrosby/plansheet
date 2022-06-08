@@ -2,6 +2,7 @@
 
 require "yaml"
 require "date"
+require "pathname"
 
 module Plansheet
   # Once there's some stability in plansheet and dc-kwalify, will pre-load this

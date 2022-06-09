@@ -25,18 +25,17 @@ options = {}
 parser.parse!(into: options)
 
 config = Plansheet.load_config
+pool = Plansheet::Pool.new({ projects_dir: config["projects_dir"] })
 
 if options[:sheet] || options.empty?
-  project_arr = Plansheet.load_projects_dir config["projects_dir"]
-
   Dir.mkdir config["output_dir"] unless Dir.exist? config["output_dir"]
-
-  Plansheet::Sheet.new("#{config["output_dir"]}/projects.md", project_arr)
+  Plansheet::Sheet.new("#{config["output_dir"]}/projects.md", pool.projects)
 elsif options[:sort]
-  Plansheet.resort_projects_in_dir config["projects_dir"]
+  # Pool sorts projects, this now just matches old behaviour
+  pool.write_projects
 elsif options[:cli]
-  project_arr = Plansheet.load_projects_dir config["projects_dir"]
-  project_arr.sort!
+  # TODO: add a project filter method
+  project_arr = pool.projects
   project_arr.delete_if { |x| x.status == "dropped" || x.status == "done" }
   project_arr.select! { |x| x.location == options[:location_filter] } if options[:location_filter]
   project_arr.each do |proj|

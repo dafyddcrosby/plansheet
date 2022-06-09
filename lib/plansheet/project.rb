@@ -60,6 +60,7 @@ module Plansheet
 
     def initialize(options)
       @name = options["project"]
+      @namespace = options["namespace"]
 
       ALL_PROPERTIES.each do |o|
         instance_variable_set("@#{o}", options[o]) if options[o]
@@ -221,7 +222,7 @@ module Plansheet
     end
 
     def to_h
-      h = { "project" => @name }
+      h = { "project" => @name, "namespace" => @namespace }
       ALL_PROPERTIES.each do |prop|
         h[prop] = instance_variable_get("@#{prop}") if instance_variable_defined?("@#{prop}")
       end

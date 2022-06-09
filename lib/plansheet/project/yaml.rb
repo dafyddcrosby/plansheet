@@ -16,7 +16,9 @@ module Plansheet
           "project":
             desc: Project name
             type: str
-            required: yes
+          "namespace":
+            desc: Project name
+            type: str
           "priority":
             desc: Project priority
             type: str
@@ -110,17 +112,19 @@ module Plansheet
   PROJECT_SCHEMA = YAML.safe_load(PROJECT_YAML_SCHEMA)
 
   class ProjectYAMLFile
-    attr_reader :projects
+    attr_accessor :projects
 
     def initialize(path)
       @path = path
       # TODO: this won't GC, inline validation instead?
+    end
 
+    def load_file
       # Handle pre-Ruby 3.1 psych versions (this is brittle)
       @raw = if Psych::VERSION.split(".")[0].to_i >= 4
-               YAML.load_file(path, permitted_classes: [Date])
+               YAML.load_file(@path, permitted_classes: [Date])
              else
-               YAML.load_file(path)
+               YAML.load_file(@path)
              end
 
       validate_schema
@@ -129,6 +133,7 @@ module Plansheet
         proj["namespace"] = namespace
         Project.new proj
       end
+      @projects
     end
 
     def namespace
@@ -156,7 +161,7 @@ module Plansheet
     end
 
     def yaml_dump
-      YAML.dump @projects.map(&:to_h)
+      YAML.dump(@projects.map { |x| x.to_h.except("namespace") })
     end
   end
 end

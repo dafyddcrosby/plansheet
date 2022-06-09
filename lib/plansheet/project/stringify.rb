@@ -4,7 +4,9 @@ module Plansheet
   class Project
     def to_s
       str = String.new
-      str << "# #{@name}\n"
+      str << "# "
+      str << "#{@namespace} - " if @namespace
+      str << "#{@name}\n"
       STRING_PROPERTIES.each do |o|
         str << stringify_string_property(o)
       end

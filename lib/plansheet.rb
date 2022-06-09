@@ -20,7 +20,7 @@ module Plansheet
     project_files.each do |f|
       pyf = ProjectYAMLFile.new(f)
       pyf.sort!
-      File.write(f, pyf.yaml_dump)
+      pyf.write
     end
   end
 

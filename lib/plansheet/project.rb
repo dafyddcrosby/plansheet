@@ -49,13 +49,14 @@ module Plansheet
     ].map { |x| "compare_#{x}".to_sym }.freeze
     # NOTE: The order of these affects presentation!
     # namespace is derived from file name
-    STRING_PROPERTIES = %w[namespace priority status location notes time_estimate frequency lead_time].freeze
+    STRING_PROPERTIES = %w[priority status location notes time_estimate frequency lead_time].freeze
     DATE_PROPERTIES = %w[due defer completed_on created_on starts_on last_done last_reviewed].freeze
     ARRAY_PROPERTIES = %w[dependencies externals urls tasks done tags].freeze
 
     ALL_PROPERTIES = STRING_PROPERTIES + DATE_PROPERTIES + ARRAY_PROPERTIES
 
     attr_reader :name, *ALL_PROPERTIES
+    attr_accessor :namespace
 
     def initialize(options)
       @name = options["project"]

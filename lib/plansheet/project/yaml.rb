@@ -17,9 +17,6 @@ module Plansheet
             desc: Project name
             type: str
             required: yes
-          "namespace":
-            desc: Namespace of a group of projects (for organizing)
-            type: str
           "priority":
             desc: Project priority
             type: str
@@ -154,8 +151,12 @@ module Plansheet
       @projects.sort!
     end
 
+    def write
+      File.write @path, yaml_dump
+    end
+
     def yaml_dump
-      YAML.dump(@projects.map(&:to_h))
+      YAML.dump @projects.map(&:to_h)
     end
   end
 end

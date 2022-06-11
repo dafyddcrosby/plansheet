@@ -17,12 +17,6 @@ module Plansheet
     "done" => 8
   }.freeze
 
-  PROJECT_PRIORITY = {
-    "high" => 1,
-    "medium" => 2,
-    "low" => 3
-  }.freeze
-
   def self.parse_date_duration(str)
     return Regexp.last_match(1).to_i if str.strip.match(/(\d+)[dD]/)
     return (Regexp.last_match(1).to_i * 7) if str.strip.match(/(\d+)[wW]/)
@@ -39,6 +33,12 @@ module Plansheet
   class Project
     include Comparable
 
+    PROJECT_PRIORITY = {
+      "high" => 1,
+      "medium" => 2,
+      "low" => 3
+    }.freeze
+
     COMPARISON_ORDER_SYMS = Plansheet::Pool::POOL_COMPARISON_ORDER.map { |x| "compare_#{x}".to_sym }.freeze
     # NOTE: The order of these affects presentation!
     # namespace is derived from file name
@@ -48,7 +48,7 @@ module Plansheet
 
     ALL_PROPERTIES = STRING_PROPERTIES + DATE_PROPERTIES + ARRAY_PROPERTIES
 
-    attr_reader :name, *ALL_PROPERTIES
+    attr_reader :name, :priority_val, *ALL_PROPERTIES
     attr_accessor :namespace
 
     def initialize(options)
@@ -69,7 +69,11 @@ module Plansheet
       # date/external commits/penalties for project failure, etc
       #
       # Assume all projects are low priority unless stated otherwise.
-      @priority ||= "low"
+      @priority_val = if @priority
+                        PROJECT_PRIORITY[@priority]
+                      else
+                        PROJECT_PRIORITY["low"]
+                      end
     end
 
     def <=>(other)
@@ -82,7 +86,7 @@ module Plansheet
     end
 
     def compare_priority(other)
-      PROJECT_PRIORITY[@priority] <=> PROJECT_PRIORITY[other.priority]
+      priority_val <=> other.priority_val
     end
 
     def compare_status(other)

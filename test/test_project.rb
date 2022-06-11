@@ -3,7 +3,7 @@
 require "test_helper"
 
 # TODO: yuck, that's gross
-Plansheet::Pool::POOL_COMPARISON_ORDER = []
+Plansheet::Pool::POOL_COMPARISON_ORDER = [].freeze
 
 require "plansheet/project"
 

@@ -4,6 +4,8 @@ require "yaml"
 require "date"
 require "pathname"
 
+require "kwalify"
+
 module Plansheet
   # Once there's some stability in plansheet and dc-kwalify, will pre-load this
   # to save the later YAML.load

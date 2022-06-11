@@ -5,10 +5,30 @@ module Plansheet
   class Pool
     attr_accessor :projects
 
+    DEFAULT_COMPARISON_ORDER = %w[
+      completeness
+      dependency
+      priority
+      defer
+      due
+      status
+    ].freeze
+
     def initialize(config)
       @projects_dir = config[:projects_dir]
+      @sort_order = config[:sort_order]
       # @completed_projects_dir = config(:completed_projects_dir)
 
+      # This bit of trickiness is because we don't know what the sort order is
+      # until runtime. I'm sure this design decision definitely won't bite me
+      # in the future ;-) Fortunately, it's also not a problem that can't be
+      # walked back from.
+      if config[:sort_order]
+        self.class.const_set("POOL_COMPARISON_ORDER", config[:sort_order])
+      else
+        self.class.const_set("POOL_COMPARISON_ORDER", Plansheet::Pool::DEFAULT_COMPARISON_ORDER)
+      end
+      require_relative "project"
       load_projects_dir(@projects_dir)
       sort_projects
     end

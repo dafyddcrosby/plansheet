@@ -39,14 +39,7 @@ module Plansheet
   class Project
     include Comparable
 
-    DEFAULT_COMPARISON_ORDER = %w[
-      completeness
-      dependency
-      priority
-      defer
-      due
-      status
-    ].map { |x| "compare_#{x}".to_sym }.freeze
+    COMPARISON_ORDER_SYMS = Plansheet::Pool::POOL_COMPARISON_ORDER.map { |x| "compare_#{x}".to_sym }.freeze
     # NOTE: The order of these affects presentation!
     # namespace is derived from file name
     STRING_PROPERTIES = %w[priority status location notes time_estimate frequency lead_time].freeze
@@ -81,7 +74,7 @@ module Plansheet
 
     def <=>(other)
       ret_val = 0
-      DEFAULT_COMPARISON_ORDER.each do |method|
+      COMPARISON_ORDER_SYMS.each do |method|
         ret_val = send(method, other)
         break if ret_val != 0
       end

@@ -2,6 +2,11 @@
 
 require "test_helper"
 
+# TODO: yuck, that's gross
+Plansheet::Pool::POOL_COMPARISON_ORDER = []
+
+require "plansheet/project"
+
 class TestProject < Minitest::Test
   PRIORITY_TEST_CASES = [
     [{}, {}, 0],

@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "plansheet/version"
-require_relative "plansheet/project"
 require_relative "plansheet/pool"
-require_relative "plansheet/sheet"
 require "yaml"
-require "kwalify"
 
 module Plansheet
   class Error < StandardError; end

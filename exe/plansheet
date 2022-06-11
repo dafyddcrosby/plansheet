@@ -29,9 +29,11 @@ options = {}
 parser.parse!(into: options)
 
 config = Plansheet.load_config
-pool = Plansheet::Pool.new({ projects_dir: config["projects_dir"] })
+pool = Plansheet::Pool.new({ projects_dir: config["projects_dir"],
+                             sort_order: config["sort_order"] })
 
 if options[:sheet] || options.empty?
+  require "plansheet/sheet"
   Dir.mkdir config["output_dir"] unless Dir.exist? config["output_dir"]
   Plansheet::Sheet.new("#{config["output_dir"]}/projects.md", pool.projects)
 elsif options[:sort]

@@ -18,6 +18,10 @@ parser.on(
   "CLI dump of projects (WIP)"
 )
 parser.on(
+  "--calendar",
+  "List of projects ordered by due date"
+)
+parser.on(
   "--location_filter LOCATION",
   "location filter for CLI dump (WIP)"
 )
@@ -33,6 +37,16 @@ if options[:sheet] || options.empty?
 elsif options[:sort]
   # Pool sorts projects, this now just matches old behaviour
   pool.write_projects
+elsif options[:calendar]
+  # TODO: add a project filter method
+  project_arr = pool.projects
+  project_arr.delete_if { |x| x.status == "dropped" || x.status == "done" }
+  project_arr.delete_if { |x| x.due.nil? }
+  project_arr.sort_by!(&:due)
+  project_arr.each do |proj|
+    puts proj
+    puts "\n"
+  end
 elsif options[:cli]
   # TODO: add a project filter method
   project_arr = pool.projects

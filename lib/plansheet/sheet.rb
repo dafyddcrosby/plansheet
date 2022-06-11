@@ -39,8 +39,9 @@ module Plansheet
 
     def project_header(proj)
       str = String.new
-      str << "#{proj.name} - #{proj.status}"
+      str << "#{proj.namespace}: #{proj.name} - #{proj.status}"
       str << " - #{proj.location}" if proj.location
+      str << " - due #{proj.due}" if proj.due
       str << " \\\\\n"
       str
     end

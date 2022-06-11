@@ -10,7 +10,6 @@ module Plansheet
       # @completed_projects_dir = config(:completed_projects_dir)
 
       load_projects_dir(@projects_dir)
-      # TODO: Slurp all files
       sort_projects
     end
 
@@ -31,10 +30,7 @@ module Plansheet
       # are involved once completed project directories are a thing - will need
       # to keep a list of project files to delete
       project_namespaces.each do |ns|
-        # TODO: move this to ProjectYAMLFile
-        #
-        f = "#{@projects_dir}/#{ns}.yml"
-        pyf = ProjectYAMLFile.new f
+        pyf = ProjectYAMLFile.new "#{@projects_dir}/#{ns}.yml"
         pyf.projects = projects_in_namespace(ns)
         pyf.write
       end

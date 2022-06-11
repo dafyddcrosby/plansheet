@@ -5,12 +5,10 @@ module Plansheet
   # The Sheet class constructs a Markdown/LaTeX file for use with pandoc
   class Sheet
     def initialize(output_file, project_arr)
-      sorted_arr = project_arr.sort!
-
       projects_str = String.new
       projects_str << sheet_header
 
-      sorted_arr.each do |p|
+      project_arr.each do |p|
         projects_str << project_minipage(p)
       end
       puts "Writing to #{output_file}"

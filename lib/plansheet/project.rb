@@ -114,19 +114,25 @@ module Plansheet
       receiver <=> comparison
     end
 
-    def compare_dependency(other)
-      return 0 if @dependencies.nil? && other.dependencies.nil?
-
-      if @dependencies.nil?
-        return -1 if other.dependencies.any? do |dep|
-          @name.downcase == dep.downcase
-        end
-      elsif @dependencies.any? do |dep|
-              other.name.downcase == dep.downcase
-            end
-        return 1
+    def dependency_of?(other)
+      other&.dependencies&.any? do |dep|
+        @name&.downcase == dep.downcase
       end
-      0
+    end
+
+    def dependent_on?(other)
+      @dependencies&.any? do |dep|
+        other&.name&.downcase == dep.downcase
+      end
+    end
+
+    def compare_dependency(other)
+      # This approach might seem odd,
+      # but it's to handle circular dependencies
+      retval = 0
+      retval -= 1 if dependency_of?(other)
+      retval += 1 if dependent_on?(other)
+      retval
     end
 
     # Projects that are dropped or done are considered "complete", insofar as

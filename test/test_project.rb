@@ -245,7 +245,7 @@ class TestProjectComparison < Minitest::Test
         # Handle case inconsistency
         [{ "dependencies" => ["foo"] }, { "project" => "Foo" }, 1],
         # Multiple dependencies
-        [{ "dependencies" => %w[bar foo] }, { "project" => "foo" }, 1],
+        [{ "dependencies" => %w[bar foo] }, { "project" => "foo" }, 1]
       ]
     ).each do |x, y, e|
       assert_equal e, Plansheet::Project.new(x).compare_dependency(Plansheet::Project.new(y))

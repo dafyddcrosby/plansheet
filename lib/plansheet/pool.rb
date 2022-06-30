@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "rgl/adjacency"
+require "rgl/topsort"
+
 module Plansheet
   # The "pool" is the aggregated collection of projects, calendar events, etc.
   class Pool
@@ -34,6 +37,38 @@ module Plansheet
     end
 
     def sort_projects
+      @projects.sort!
+      # lookup_hash returns the index of a project
+      lookup_hash = Hash.new nil
+
+      # initialize the lookups
+      @projects.each_index do |i|
+        lookup_hash[@projects[i].name] = i
+      end
+
+      pg = RGL::DirectedAdjacencyGraph.new
+      pg.add_vertices @projects
+      @projects.each_index do |proj_index|
+        next if @projects[proj_index].dropped_or_done?
+
+        @projects[proj_index]&.dependencies&.each do |dep|
+          di = lookup_hash[dep]
+          if di
+            # Don't add edges for dropped/done projects, they'll be sorted out
+            # later
+            next if @projects[di].dropped_or_done?
+
+            pg.add_edge(@projects[di], @projects[proj_index])
+          end
+        end
+      end
+
+      # The topological sort of pg is the correct dependency order of the
+      # projects
+      @projects = pg.topsort_iterator.to_a.flatten.uniq
+
+      # TODO: second sort doesn't deal with problems where deferred task gets
+      # pushed below.
       @projects.sort!
     end
 

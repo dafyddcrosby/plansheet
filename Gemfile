@@ -10,6 +10,7 @@ group :development, optional: true do
   gem "guard-minitest", "~> 2.4"
   gem "minitest", "~> 5.0"
   gem "rake", "~> 13.0"
+  gem "rdoc"
 
   gem "rubocop", "~> 1.21"
   gem "rubocop-minitest"

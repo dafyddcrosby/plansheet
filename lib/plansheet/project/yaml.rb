@@ -163,7 +163,7 @@ module Plansheet
     end
 
     def yaml_dump
-      YAML.dump(@projects.map { |x| x.to_h.except("namespace") })
+      YAML.dump(@projects.map { |x| x.to_h.delete_if { |k, _| k == "namespace" } })
     end
   end
 end

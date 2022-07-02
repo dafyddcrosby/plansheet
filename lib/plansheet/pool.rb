@@ -17,7 +17,7 @@ module Plansheet
       status
     ].freeze
 
-    def initialize(config)
+    def initialize(config, debug: false)
       @projects_dir = config[:projects_dir]
       @sort_order = config[:sort_order]
       # @completed_projects_dir = config(:completed_projects_dir)
@@ -32,11 +32,12 @@ module Plansheet
         self.class.const_set("POOL_COMPARISON_ORDER", Plansheet::Pool::DEFAULT_COMPARISON_ORDER)
       end
       require_relative "project"
-      load_projects_dir(@projects_dir)
-      sort_projects
+      load_projects_dir(@projects_dir) unless debug
+      sort_projects if @projects
     end
 
     def sort_projects
+      @projects ||= []
       @projects.sort!
       # lookup_hash returns the index of a project
       lookup_hash = Hash.new nil

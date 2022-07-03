@@ -26,12 +26,12 @@ module Plansheet
       # until runtime. I'm sure this design decision definitely won't bite me
       # in the future ;-) Fortunately, it's also not a problem that can't be
       # walked back from.
-      if config[:sort_order]
-        self.class.const_set("POOL_COMPARISON_ORDER", config[:sort_order])
-      else
-        self.class.const_set("POOL_COMPARISON_ORDER", Plansheet::Pool::DEFAULT_COMPARISON_ORDER)
-      end
+      # rubocop:disable Lint/OrAssignmentToConstant
+      Plansheet::Pool::POOL_COMPARISON_ORDER ||= config[:sort_order] if config[:sort_order]
+      Plansheet::Pool::POOL_COMPARISON_ORDER ||= Plansheet::Pool::DEFAULT_COMPARISON_ORDER
+      # rubocop:enable Lint/OrAssignmentToConstant
       require_relative "project"
+
       load_projects_dir(@projects_dir) unless debug
       sort_projects if @projects
     end

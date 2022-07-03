@@ -18,6 +18,7 @@ module Plansheet
           "project":
             desc: Project name
             type: str
+            unique: true
           "namespace":
             desc: Project name
             type: str

@@ -52,6 +52,17 @@ module Plansheet
           "time_estimate":
             desc: The estimated amount of time before a project is completed
             type: str
+          "day_of_week":
+            desc: recurring day of week project
+            type: str
+            enum:
+              - Sunday
+              - Monday
+              - Tuesday
+              - Wednesday
+              - Thursday
+              - Friday
+              - Saturday
           "frequency":
             desc: The amount of time before a recurring project moves to ready status again from when it was last done (WIP)
             type: str

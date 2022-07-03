@@ -113,25 +113,136 @@ class TestProjectInputs < Minitest::Test
   def test_recurring_projects
     [
       {
+        name: "non-recurring task",
         proj: {},
-        recurring: false
+        recurring: false,
+        status: "idea"
       },
       {
+        name: "Implied first time - frequency",
         proj: {
           "frequency" => "1w"
         },
         recurring: true,
-        status: "ready",
+        status: "idea",
+        due: Date.today
+      },
+      {
+        name: "Implied first time - frequency (using lead_time)",
+        proj: {
+          "frequency" => "1w",
+          "lead_time" => "1d"
+        },
+        recurring: true,
+        status: "idea",
+        due: Date.today,
         defer: Date.today
+      },
+      {
+        name: "Implied first time - day-of-week",
+        proj: {
+          "day_of_week" => Date.today.strftime("%A")
+        },
+        recurring: true,
+        status: "idea",
+        due: Date.today
+      },
+      {
+        name: "Implied first time - day-of-week (using lead_time)",
+        proj: {
+          "day_of_week" => Date.today.strftime("%A")
+        },
+        recurring: true,
+        status: "idea",
+        due: Date.today
+      },
+      {
+        name: "Frequency recurring - done exactly last week",
+        proj: {
+          "frequency" => "1w",
+          "last_done" => Date.today - 7
+        },
+        recurring: true,
+        status: "idea",
+        due: Date.today
+      },
+      {
+        name: "Frequency recurring - done over a week ago",
+        proj: {
+          "frequency" => "1w",
+          "last_done" => Date.today - 8
+        },
+        recurring: true,
+        status: "idea",
+        due: Date.today - 1
+      },
+      {
+        name: "Frequency recurring - done less than a week ago",
+        proj: {
+          "frequency" => "1w",
+          "last_done" => Date.today - 6
+        },
+        recurring: true,
+        status: "done",
+        due: Date.today + 1
+      },
+      {
+        name: "Frequency recurring - finished today",
+        proj: {
+          "frequency" => "1w",
+          "last_done" => Date.today
+        },
+        recurring: true,
+        status: "done",
+        due: Date.today + 7
+      },
+      {
+        name: "Day-of-week recurring - done exactly last week",
+        proj: {
+          "day_of_week" => Date.today.strftime("%A"),
+          "last_done" => Date.today - 7
+        },
+        recurring: true,
+        status: "idea",
+        due: Date.today
+      },
+      {
+        name: "Day-of-week recurring - done over a week ago",
+        proj: {
+          "day_of_week" => Date.today.strftime("%A"),
+          "last_done" => Date.today - 8
+        },
+        recurring: true,
+        status: "idea",
+        due: Date.today - 1
+      },
+      {
+        name: "Day-of-week recurring - done less than a week ago",
+        proj: {
+          "day_of_week" => Date.today.strftime("%A"),
+          "last_done" => Date.today - 6
+        },
+        recurring: true,
+        status: "idea",
+        due: Date.today
+      },
+      {
+        name: "Day-of-week recurring - finished today",
+        proj: {
+          "day_of_week" => Date.today.strftime("%A"),
+          "last_done" => Date.today
+        },
+        recurring: true,
+        status: "done",
+        due: Date.today + 7
       }
+      # TODO: test that lead time works
     ].each do |t|
       x = Plansheet::Project.new(t[:proj])
-      assert_equal t[:recurring], x.recurring?
-      # test for last done
-      # test for lead time
-      # test for due
-      # test that status changes to ready
-      # test that done tasks are moved to ready tasks
+      assert_equal t[:recurring], x.recurring?, t
+      assert_equal t[:status], x.status, t
+      assert_equal t[:defer], x.defer, t
+      assert_equal t[:due], x.due, t
     end
   end
 end

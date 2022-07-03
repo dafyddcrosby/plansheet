@@ -17,6 +17,12 @@ module Plansheet
     "done" => 8
   }.freeze
 
+  # Pre-compute the next days-of-week
+  NEXT_DOW = 0.upto(6).to_h do |x|
+    d = Date.today + x
+    [d.strftime("%A"), d]
+  end.freeze
+
   def self.parse_date_duration(str)
     return Regexp.last_match(1).to_i if str.strip.match(/(\d+)[dD]/)
     return (Regexp.last_match(1).to_i * 7) if str.strip.match(/(\d+)[wW]/)
@@ -42,7 +48,7 @@ module Plansheet
     COMPARISON_ORDER_SYMS = Plansheet::Pool::POOL_COMPARISON_ORDER.map { |x| "compare_#{x}".to_sym }.freeze
     # NOTE: The order of these affects presentation!
     # namespace is derived from file name
-    STRING_PROPERTIES = %w[priority status location notes time_estimate frequency lead_time].freeze
+    STRING_PROPERTIES = %w[priority status location notes time_estimate day_of_week frequency lead_time].freeze
     DATE_PROPERTIES = %w[due defer completed_on created_on starts_on last_done last_reviewed].freeze
     ARRAY_PROPERTIES = %w[dependencies externals urls tasks done tags].freeze
 
@@ -204,10 +210,18 @@ module Plansheet
 
     def recurring_due_date
       if @last_done
-        @last_done + Plansheet.parse_date_duration(@frequency)
-      else
-        Date.today
+        return @last_done + Plansheet.parse_date_duration(@frequency) if @frequency
+
+        if @day_of_week
+          return Date.today + 7 if @last_done == Date.today
+          return @last_done + 7 if @last_done < Date.today - 7
+
+          return NEXT_DOW[@day_of_week]
+        end
       end
+
+      # Going to assume this is the first time, so due today
+      Date.today
     end
 
     def defer
@@ -223,7 +237,7 @@ module Plansheet
     end
 
     def recurring?
-      !@frequency.nil?
+      !@frequency.nil? || !@day_of_week.nil?
     end
 
     def dropped_or_done?

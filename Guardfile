@@ -11,5 +11,6 @@ guard :rake, task: "default" do
   watch("bin/console")
   watch(%r{^test/test_(.*)\.rb$})
   watch(%r{^lib/plansheet/(.*)\.rb$})
+  watch(%r{^lib/plansheet/project/(.*)\.rb$})
   watch(%r{^lib/plansheet\.rb$})
 end

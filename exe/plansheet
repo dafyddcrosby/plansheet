@@ -14,6 +14,10 @@ parser.on(
   "Sort project files"
 )
 parser.on(
+  "--irb",
+  "Open IRB console after loading projects"
+)
+parser.on(
   "--cli",
   "CLI dump of projects (WIP)"
 )
@@ -36,6 +40,8 @@ if options[:sheet] || options.empty?
   require "plansheet/sheet"
   Dir.mkdir config["output_dir"] unless Dir.exist? config["output_dir"]
   Plansheet::Sheet.new("#{config["output_dir"]}/projects.md", pool.projects)
+elsif options[:irb]
+  binding.irb
 elsif options[:sort]
   # Pool sorts projects, this now just matches old behaviour
   pool.write_projects

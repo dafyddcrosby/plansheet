@@ -45,11 +45,11 @@ if options[:sheet] || options.empty?
   Dir.mkdir config["output_dir"] unless Dir.exist? config["output_dir"]
   Plansheet::Sheet.new("#{config["output_dir"]}/projects.md", pool.projects)
 elsif options[:irb]
-  binding.irb
+  binding.irb # rubocop:disable Lint/Debugger
 elsif options[:stats]
   puts "# of projects: #{pool.projects.count}"
   puts "# of tasks: #{pool.projects.sum { |x| x&.tasks&.count || 0 }}"
-  puts "# of locations: #{pool.projects.collect { |x| x.location }.flatten.delete_if { |x| x.nil? }.uniq.count}"
+  puts "# of locations: #{pool.projects.collect(&:location).flatten.delete_if(&:nil?).uniq.count}"
 elsif options[:sort]
   # Pool sorts projects, this now just matches old behaviour
   pool.write_projects

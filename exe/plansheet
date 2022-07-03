@@ -22,6 +22,10 @@ parser.on(
   "CLI dump of projects (WIP)"
 )
 parser.on(
+  "--stats",
+  "Various stats (WIP)"
+)
+parser.on(
   "--calendar",
   "List of projects ordered by due date"
 )
@@ -42,6 +46,10 @@ if options[:sheet] || options.empty?
   Plansheet::Sheet.new("#{config["output_dir"]}/projects.md", pool.projects)
 elsif options[:irb]
   binding.irb
+elsif options[:stats]
+  puts "# of projects: #{pool.projects.count}"
+  puts "# of tasks: #{pool.projects.sum { |x| x&.tasks&.count || 0 }}"
+  puts "# of locations: #{pool.projects.collect { |x| x.location }.flatten.delete_if { |x| x.nil? }.uniq.count}"
 elsif options[:sort]
   # Pool sorts projects, this now just matches old behaviour
   pool.write_projects

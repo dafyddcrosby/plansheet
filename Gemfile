@@ -7,7 +7,7 @@ gemspec
 
 group :development, optional: true do
   gem "guard", "~> 2.18"
-  gem "guard-minitest", "~> 2.4"
+  gem "guard-rake", "~> 1.0"
   gem "minitest", "~> 5.0"
   gem "rake", "~> 13.0"
   gem "rdoc"

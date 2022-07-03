@@ -74,6 +74,12 @@ module Plansheet
                       else
                         PROJECT_PRIORITY["low"]
                       end
+
+      # Remove stale defer dates
+      remove_instance_variable("@defer") if @defer && (@defer < Date.today)
+
+      # Add a created_on field if it doesn't exist
+      instance_variable_set("@created_on", Date.today) unless @created_on
     end
 
     def <=>(other)

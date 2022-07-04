@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    plansheet (0.20.0)
+    plansheet (0.20.1)
       dc-kwalify (~> 1.0)
       rgl (= 0.5.8)
 

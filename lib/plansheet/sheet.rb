@@ -28,20 +28,26 @@ module Plansheet
 
     def project_minipage(proj)
       str = String.new
-      str << "\\begin{minipage}{4.5cm}\n"
+      str << "\\begin{minipage}{6cm}\n"
       str << project_header(proj)
       proj&.tasks&.each do |t|
-        str << "$\\square$ #{t} \\\\\n"
+        str << "$\\square$ #{sanitize_string(t)} \\\\\n"
       end
       str << "\\end{minipage}\n"
       str
     end
 
+    def sanitize_string(t)
+      t.gsub('_', '\_')
+    end
+
     def project_header(proj)
       str = String.new
-      str << "#{proj.namespace}: #{proj.name} - #{proj.status}"
+      str << "#{proj.namespace}: #{proj.name}\\\\\n"
+      str << "#{proj.status}"
       str << " - #{proj.location}" if proj.location
-      str << " - due #{proj.due}" if proj.due
+      str << " due: #{proj.due}" if proj.due
+      str << " time: #{proj.time_estimate}" if proj.time_estimate
       str << " \\\\\n"
       str
     end

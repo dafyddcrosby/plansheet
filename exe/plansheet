@@ -50,6 +50,7 @@ elsif options[:stats]
   puts "# of projects: #{pool.projects.count}"
   puts "# of tasks: #{pool.projects.sum { |x| x&.tasks&.count || 0 }}"
   puts "# of locations: #{pool.projects.collect(&:location).flatten.delete_if(&:nil?).uniq.count}"
+  puts "combined time estimate: #{pool.projects.sum { |x| x.time_estimate_minutes || 0 }} minutes"
 elsif options[:sort]
   # Pool sorts projects, this now just matches old behaviour
   pool.write_projects

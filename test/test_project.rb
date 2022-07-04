@@ -77,6 +77,49 @@ class TestProjectInputs < Minitest::Test
     end
   end
 
+  def test_time_estimate_minutes
+    [
+      [{ "project" => "Empty project" }, nil],
+      [{
+        "project" => "Explicit time_estimate",
+        "time_estimate" => "60m"
+      }, 60],
+      [{
+        "project" => "Single task with estimate",
+        "tasks" => ["half hour task (30m)"]
+      }, 30],
+      [{
+        "project" => "Multiple tasks with estimate",
+        "tasks" => [
+          "task a (10m)",
+          "task b (10m)",
+          "task c (10m)"
+        ]
+      }, 30],
+      [{
+        "project" => "Multiple tasks with estimate mixed with none",
+        "tasks" => [
+          "task a (10m)",
+          "task b",
+          "task c (10m)",
+          "task d",
+          "task e (10m)"
+        ]
+      }, 30],
+      [{
+        "project" => "Estimate tasks and stale time estimate",
+        "time_estimate" => "20m", # Pretend we've added another task
+        "tasks" => [
+          "task a (10m)",
+          "task b (10m)",
+          "task c (10m)"
+        ]
+      }, 30]
+    ].each do |proj, minutes|
+      assert_equal minutes, Plansheet::Project.new(proj).time_estimate_minutes, proj
+    end
+  end
+
   def test_parse_date_duration
     [
       ["1d", 1],
@@ -91,6 +134,52 @@ class TestProjectInputs < Minitest::Test
       ["10W", 70]
     ].each do |str, days|
       assert_equal days, Plansheet.parse_date_duration(str)
+    end
+  end
+
+  def test_build_time_duration
+    [
+      [30, "30m"],
+      [60, "1h"],
+      [120, "2h"],
+      [150, "2h 30m"]
+    ].each do |minutes, str|
+      assert_equal str, Plansheet.build_time_duration(minutes)
+    end
+  end
+
+  def test_parse_time_duration
+    [
+      ["1m", 1],
+      ["1M", 1],
+      ["5m", 5],
+      ["5M", 5],
+      ["60m", 60],
+      ["88m", 88],
+      ["88M", 88],
+      ["1h", 60],
+      ["1H", 60],
+      ["1.5h", 90],
+      ["1.5H", 90],
+      ["2.5h", 150],
+      ["2.5H", 150],
+      ["10h", 600],
+      ["10H", 600]
+    ].each do |str, minutes|
+      assert_equal minutes, Plansheet.parse_time_duration(str)
+    end
+  end
+
+  def test_task_time_estimate
+    [
+      ["task a (30m)", 30],
+      ["task b (2h)", 120],
+      ["task c (1.5h)", 90],
+      ["(1.5h)", 90], # Weird, but legal for implementation reasons
+      ["task d (1.5h) ", nil],
+      ["task (1.5h) e", nil]
+    ].each do |str, minutes|
+      assert_equal minutes, Plansheet::Project.task_time_estimate(str)
     end
   end
 
@@ -243,6 +332,105 @@ class TestProjectInputs < Minitest::Test
       assert_equal t[:status], x.status, t
       assert_equal t[:defer], x.defer, t
       assert_equal t[:due], x.due, t
+    end
+  end
+
+  def test_to_h
+    # While it's tempting to remove nil namespaces, they should typically have
+    # values in normal use, so checking + deleting them from output would just
+    # add processing overhead
+    [
+      [
+        {
+          "project" => "empty project"
+        },
+        {
+          "project" => "empty project",
+          "namespace" => nil,
+          "created_on" => Date.today
+        }
+      ],
+      [
+        {
+          "project" => "stale defer",
+          "created_on" => Date.today - 2,
+          "defer" => Date.today - 1
+        },
+        {
+          "project" => "stale defer",
+          "namespace" => nil,
+          "created_on" => Date.today - 2
+        }
+      ],
+      [
+        {
+          "project" => "project with non-low priority",
+          "priority" => "high"
+        },
+        {
+          "project" => "project with non-low priority",
+          "priority" => "high",
+          "namespace" => nil,
+          "created_on" => Date.today
+        }
+      ],
+      [
+        {
+          "project" => "project with non-idea status",
+          "status" => "ready"
+        },
+        {
+          "project" => "project with non-idea status",
+          "status" => "ready",
+          "namespace" => nil,
+          "created_on" => Date.today
+        }
+      ],
+      [
+        {
+          "project" => "project with explicit time_estimate 30m",
+          "time_estimate" => "30m"
+        },
+        {
+          "project" => "project with explicit time_estimate 30m",
+          "time_estimate" => "30m",
+          "namespace" => nil,
+          "created_on" => Date.today
+        }
+      ],
+      [
+        {
+          "project" => "project with explicit time_estimate 60m",
+          "time_estimate" => "60m"
+        },
+        {
+          "project" => "project with explicit time_estimate 60m",
+          "time_estimate" => "1h",
+          "namespace" => nil,
+          "created_on" => Date.today
+        }
+      ],
+      [
+        {
+          "project" => "project with implied time_estimate",
+          "tasks" => [
+            "task a (15m)",
+            "task b (15m)"
+          ]
+        },
+        {
+          "project" => "project with implied time_estimate",
+          "time_estimate" => "30m",
+          "tasks" => [
+            "task a (15m)",
+            "task b (15m)"
+          ],
+          "namespace" => nil,
+          "created_on" => Date.today
+        }
+      ]
+    ].each do |proj, p_to_h_results|
+      assert_equal p_to_h_results, Plansheet::Project.new(proj).to_h, proj
     end
   end
 end

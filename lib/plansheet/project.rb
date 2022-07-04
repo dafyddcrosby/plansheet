@@ -5,6 +5,13 @@ require "date"
 require_relative "project/yaml"
 require_relative "project/stringify"
 
+# Needed for Project#time_estimate, would be much happier *not* patching Array
+class Array
+  def nil_if_empty
+    count.zero? ? nil : self
+  end
+end
+
 module Plansheet
   PROJECT_STATUS_PRIORITY = {
     "wip" => 1,
@@ -30,6 +37,25 @@ module Plansheet
     raise "Can't parse time duration string #{str}"
   end
 
+  def self.parse_time_duration(str)
+    return Regexp.last_match(1).to_i if str.strip.match(/(\d+)[mM]/)
+    return (Regexp.last_match(1).to_f * 60).to_i if str.strip.match(/(\d+\.?\d*)[hH]/)
+
+    raise "Can't parse time duration string #{str}"
+  end
+
+  def self.build_time_duration(minutes)
+    if minutes > 59
+      if (minutes % 60).zero?
+        "#{minutes / 60}h"
+      else
+        "#{minutes / 60}h #{minutes % 60}m"
+      end
+    else
+      "#{minutes}m"
+    end
+  end
+
   # The use of instance_variable_set/get probably seems a bit weird, but the
   # intent is to avoid object allocation on non-existent project properties, as
   # well as avoiding a bunch of copy-paste boilerplate when adding a new
@@ -38,6 +64,9 @@ module Plansheet
   # unwrap the loops if it's not needed.
   class Project
     include Comparable
+
+    TIME_EST_REGEX = /\((\d+\.?\d*[mMhH])\)$/.freeze
+    TIME_EST_REGEX_NO_CAPTURE = /\(\d+\.?\d*[mMhH]\)$/.freeze
 
     PROJECT_PRIORITY = {
       "high" => 1,
@@ -54,7 +83,7 @@ module Plansheet
 
     ALL_PROPERTIES = STRING_PROPERTIES + DATE_PROPERTIES + ARRAY_PROPERTIES
 
-    attr_reader :name, :priority_val, *ALL_PROPERTIES
+    attr_reader :name, :priority_val, :time_estimate_minutes, *ALL_PROPERTIES
     attr_accessor :namespace
 
     def initialize(options)
@@ -86,6 +115,19 @@ module Plansheet
 
       # Add a created_on field if it doesn't exist
       instance_variable_set("@created_on", Date.today) unless @created_on
+
+      # Generate time estimate from tasks if specified
+      # Stomps time_estimate field
+      if @tasks
+        @time_estimate_minutes = @tasks&.select do |t|
+                                   t.match? TIME_EST_REGEX_NO_CAPTURE
+                                 end&.nil_if_empty&.map { |t| Plansheet::Project.task_time_estimate(t) }&.sum
+      elsif @time_estimate
+        # No tasks with estimates, but there's an explicit time_estimate
+        # Convert the field to minutes
+        @time_estimate_minutes = Plansheet.parse_time_duration(@time_estimate)
+      end
+      @time_estimate = Plansheet.build_time_duration(@time_estimate_minutes) if @time_estimate_minutes
     end
 
     def <=>(other)
@@ -242,6 +284,10 @@ module Plansheet
 
     def dropped_or_done?
       status == "dropped" || status == "done"
+    end
+
+    def self.task_time_estimate(str)
+      Plansheet.parse_time_duration(Regexp.last_match(1)) if str.match(TIME_EST_REGEX)
     end
 
     def to_h

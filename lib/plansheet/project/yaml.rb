@@ -9,6 +9,8 @@ require "kwalify"
 module Plansheet
   # Once there's some stability in plansheet and dc-kwalify, will pre-load this
   # to save the later YAML.load
+  YAML_TIME_REGEX = "/\\d+[mh] ?\d*m?/" # TODO: regex is bad, adjust for better handling of pretty time
+  YAML_DATE_REGEX = "/\\d+[dw]/"
   PROJECT_YAML_SCHEMA = <<~YAML
     desc: dc-tasks project schema
     type: seq
@@ -52,6 +54,19 @@ module Plansheet
           "time_estimate":
             desc: The estimated amount of time before a project is completed
             type: str
+            pattern: #{YAML_TIME_REGEX}
+          "daily_time_roi":
+            desc: The estimated amount of time saved daily by completing this project
+            type: str
+            pattern: #{YAML_TIME_REGEX}
+          "weekly_time_roi":
+            desc: The estimated amount of time saved daily by completing this project
+            type: str
+            pattern: #{YAML_TIME_REGEX}
+          "yearly_time_roi":
+            desc: The estimated amount of time saved daily by completing this project
+            type: str
+            pattern: #{YAML_TIME_REGEX}
           "day_of_week":
             desc: recurring day of week project
             type: str
@@ -66,11 +81,11 @@ module Plansheet
           "frequency":
             desc: The amount of time before a recurring project moves to ready status again from when it was last done (WIP)
             type: str
-            pattern: /\\d+[dwDW]/
+            pattern: #{YAML_DATE_REGEX}
           "lead_time":
             desc: The amount of time before a recurring project is "due" moved to ready where the project (sort of a deferral mechanism) (WIP)
             type: str
-            pattern: /\\d+[dwDW]/
+            pattern: #{YAML_DATE_REGEX}
           "due":
             desc: Due date of the task
             type: date

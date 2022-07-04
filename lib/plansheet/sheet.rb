@@ -37,14 +37,14 @@ module Plansheet
       str
     end
 
-    def sanitize_string(t)
-      t.gsub('_', '\_')
+    def sanitize_string(str)
+      str.gsub("_", '\_')
     end
 
     def project_header(proj)
       str = String.new
       str << "#{proj.namespace}: #{proj.name}\\\\\n"
-      str << "#{proj.status}"
+      str << proj.status.to_s
       str << " - #{proj.location}" if proj.location
       str << " due: #{proj.due}" if proj.due
       str << " time: #{proj.time_estimate}" if proj.time_estimate

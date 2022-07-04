@@ -123,15 +123,10 @@ class TestProjectInputs < Minitest::Test
   def test_parse_date_duration
     [
       ["1d", 1],
-      ["1D", 1],
       ["5d", 5],
-      ["5D", 5],
       ["88d", 88],
-      ["88D", 88],
       ["1w", 7],
-      ["1W", 7],
-      ["10w", 70],
-      ["10W", 70]
+      ["10w", 70]
     ].each do |str, days|
       assert_equal days, Plansheet.parse_date_duration(str)
     end
@@ -151,20 +146,13 @@ class TestProjectInputs < Minitest::Test
   def test_parse_time_duration
     [
       ["1m", 1],
-      ["1M", 1],
       ["5m", 5],
-      ["5M", 5],
       ["60m", 60],
       ["88m", 88],
-      ["88M", 88],
       ["1h", 60],
-      ["1H", 60],
       ["1.5h", 90],
-      ["1.5H", 90],
       ["2.5h", 150],
-      ["2.5H", 150],
-      ["10h", 600],
-      ["10H", 600]
+      ["10h", 600]
     ].each do |str, minutes|
       assert_equal minutes, Plansheet.parse_time_duration(str)
     end

@@ -38,8 +38,12 @@ module Plansheet
   end
 
   def self.parse_time_duration(str)
-    return Regexp.last_match(1).to_i if str.strip.match(/(\d+)[mM]/)
-    return (Regexp.last_match(1).to_f * 60).to_i if str.strip.match(/(\d+\.?\d*)[hH]/)
+    if str.match(/(\d+h) (\d+m)/)
+      return (parse_time_duration(Regexp.last_match(1)) + parse_time_duration(Regexp.last_match(2)))
+    end
+
+    return Regexp.last_match(1).to_i if str.strip.match(/(\d+)m/)
+    return (Regexp.last_match(1).to_f * 60).to_i if str.strip.match(/(\d+\.?\d*)h/)
 
     raise "Can't parse time duration string #{str}"
   end
@@ -77,7 +81,8 @@ module Plansheet
     COMPARISON_ORDER_SYMS = Plansheet::Pool::POOL_COMPARISON_ORDER.map { |x| "compare_#{x}".to_sym }.freeze
     # NOTE: The order of these affects presentation!
     # namespace is derived from file name
-    STRING_PROPERTIES = %w[priority status location notes time_estimate day_of_week frequency lead_time].freeze
+    STRING_PROPERTIES = %w[priority status location notes time_estimate daily_time_roi weekly_time_roi yearly_time_roi
+                           day_of_week frequency lead_time].freeze
     DATE_PROPERTIES = %w[due defer completed_on created_on starts_on last_done last_reviewed].freeze
     ARRAY_PROPERTIES = %w[dependencies externals urls tasks done tags].freeze
 

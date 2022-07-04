@@ -14,6 +14,7 @@ module Plansheet
       priority
       defer
       due
+      time_roi
       status
     ].freeze
 
@@ -28,6 +29,7 @@ module Plansheet
       # walked back from.
       # rubocop:disable Lint/OrAssignmentToConstant
       Plansheet::Pool::POOL_COMPARISON_ORDER ||= config[:sort_order] if config[:sort_order]
+      puts "using config sort order" if config[:sort_order]
       Plansheet::Pool::POOL_COMPARISON_ORDER ||= Plansheet::Pool::DEFAULT_COMPARISON_ORDER
       # rubocop:enable Lint/OrAssignmentToConstant
       require_relative "project"

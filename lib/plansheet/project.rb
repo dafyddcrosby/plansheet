@@ -132,7 +132,23 @@ module Plansheet
         # Convert the field to minutes
         @time_estimate_minutes = Plansheet.parse_time_duration(@time_estimate)
       end
-      @time_estimate = Plansheet.build_time_duration(@time_estimate_minutes) if @time_estimate_minutes
+      if @time_estimate_minutes # rubocop:disable Style/GuardClause
+        # Rewrite time_estimate field
+        @time_estimate = Plansheet.build_time_duration(@time_estimate_minutes)
+
+        yms = yearly_minutes_saved
+        @time_roi_payoff = yms.to_f / @time_estimate_minutes if yms
+      end
+    end
+
+    def yearly_minutes_saved
+      if @daily_time_roi
+        Plansheet.parse_time_duration(@daily_time_roi) * 365
+      elsif @weekly_time_roi
+        Plansheet.parse_time_duration(@weekly_time_roi) * 52
+      elsif @yearly_time_roi
+        Plansheet.parse_time_duration(@yearly_time_roi)
+      end
     end
 
     def <=>(other)
@@ -146,6 +162,14 @@ module Plansheet
 
     def compare_priority(other)
       priority_val <=> other.priority_val
+    end
+
+    def time_roi_payoff
+      @time_roi_payoff || 0
+    end
+
+    def compare_time_roi(other)
+      other.time_roi_payoff <=> time_roi_payoff
     end
 
     def compare_status(other)

@@ -171,6 +171,35 @@ class TestProjectInputs < Minitest::Test
     end
   end
 
+  def test_time_roi_payoff
+    [
+      [
+        {
+          "daily_time_roi" => "1m",
+          "time_estimate" => "365m"
+        },
+        1.0
+      ],
+      [
+        {
+          "weekly_time_roi" => "30m",
+          "time_estimate" => "1h"
+        },
+        26.0
+      ],
+      [
+        {
+          "yearly_time_roi" => "2h",
+          "time_estimate" => "1h"
+        },
+        2.0
+      ]
+    ].each do |proj, payoff|
+      x = Plansheet::Project.new(proj)
+      assert_equal payoff, x.time_roi_payoff
+    end
+  end
+
   def test_lead_time
     assert_nil Plansheet::Project.new({}).defer
     [
@@ -536,6 +565,35 @@ class TestProjectComparison < Minitest::Test
       ]
     ).each do |x, y, e|
       assert_equal e, Plansheet::Project.new(x).compare_dependency(Plansheet::Project.new(y))
+    end
+  end
+
+  def test_time_roi_comparison
+    add_inverted_test_cases(
+      [
+        [{}, {}, 0],
+
+        [{ "time_estimate" => "30m", "daily_time_roi" => "5m" }, {}, -1],
+        [{ "time_estimate" => "30m", "weekly_time_roi" => "5m" }, {}, -1],
+        [{ "time_estimate" => "30m", "yearly_time_roi" => "5m" }, {}, -1],
+        [
+          { "time_estimate" => "30m", "daily_time_roi" => "5m" },
+          { "time_estimate" => "1h", "daily_time_roi" => "5m" },
+          -1
+        ],
+        [
+          { "time_estimate" => "30m", "weekly_time_roi" => "5m" },
+          { "time_estimate" => "1h", "weekly_time_roi" => "5m" },
+          -1
+        ],
+        [
+          { "time_estimate" => "30m", "yearly_time_roi" => "5m" },
+          { "time_estimate" => "1h", "yearly_time_roi" => "5m" },
+          -1
+        ]
+      ]
+    ).each do |x, y, e|
+      assert_equal e, Plansheet::Project.new(x).compare_time_roi(Plansheet::Project.new(y))
     end
   end
 end

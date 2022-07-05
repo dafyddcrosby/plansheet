@@ -28,6 +28,61 @@ class TestProjectInputs < Minitest::Test
     end
   end
 
+  def test_defer
+    assert_nil Plansheet::Project.new({}).defer
+
+    [
+      [
+        {
+
+          "project" => "Deferred to today",
+          "defer" => Date.today
+        },
+        Date.today
+      ],
+      [
+        {
+          "project" => "Deferred to tomorrow",
+          "defer" => Date.today + 1
+        },
+        Date.today + 1
+      ],
+      [
+        {
+          "project" => "Defer was yesterday, now irrelevant",
+          "defer" => Date.today - 1
+        },
+        nil
+      ],
+      [
+        {
+          "project" => "Lasts until today",
+          "last_for" => "1w",
+          "last_done" => Date.today - 7
+        },
+        Date.today
+      ],
+      [
+        {
+          "project" => "Lasts until tomorrow",
+          "last_for" => "1w",
+          "last_done" => Date.today - 6
+        },
+        Date.today + 1
+      ],
+      [
+        {
+          "project" => "Defer was yesterday",
+          "last_for" => "1w",
+          "last_done" => Date.today - 8
+        },
+        Date.today - 1
+      ]
+    ].each do |proj, due|
+      assert_equal due, Plansheet::Project.new(proj).defer, proj
+    end
+  end
+
   def test_status
     [
       # Empty project

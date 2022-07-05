@@ -79,7 +79,11 @@ module Plansheet
               - Friday
               - Saturday
           "frequency":
-            desc: The amount of time before a recurring project moves to ready status again from when it was last done (WIP)
+            desc: The amount of time before a recurring project moves to ready status again from when it was last done, with a set due date (eg. a bill becomes due)
+            type: str
+            pattern: #{YAML_DATE_REGEX}
+          "last_for":
+            desc: "The amount of time before a recurring project moves to ready status again from when it was last done, with a set defer date (eg. inflating a bike tire). If your project 'can't wait' a day or two, you should use frequency."
             type: str
             pattern: #{YAML_DATE_REGEX}
           "lead_time":

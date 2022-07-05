@@ -82,7 +82,7 @@ module Plansheet
     # NOTE: The order of these affects presentation!
     # namespace is derived from file name
     STRING_PROPERTIES = %w[priority status location notes time_estimate daily_time_roi weekly_time_roi yearly_time_roi
-                           day_of_week frequency lead_time].freeze
+                           day_of_week frequency last_for lead_time].freeze
     DATE_PROPERTIES = %w[due defer completed_on created_on starts_on last_done last_reviewed].freeze
     ARRAY_PROPERTIES = %w[dependencies externals urls tasks done tags].freeze
 
@@ -261,7 +261,8 @@ module Plansheet
 
     def subsequent_recurring_status
       return "done" if @lead_time && defer > Date.today
-      return "done" if due > Date.today
+      return "done" if @last_for && defer > Date.today
+      return "done" if due && due > Date.today
 
       task_based_status
     end
@@ -274,7 +275,7 @@ module Plansheet
     # Due date either explicit or recurring
     def due
       return @due if @due
-      return recurring_due_date if recurring?
+      return recurring_due_date if recurring_due?
 
       nil
     end
@@ -298,8 +299,13 @@ module Plansheet
     def defer
       return @defer if @defer
       return lead_time_deferral if @lead_time && due
+      return last_for_deferral if @last_for
 
       nil
+    end
+
+    def last_for_deferral
+      return @last_done + Plansheet.parse_date_duration(@last_for) if @last_done
     end
 
     def lead_time_deferral
@@ -307,8 +313,12 @@ module Plansheet
        Date.today].max
     end
 
-    def recurring?
+    def recurring_due?
       !@frequency.nil? || !@day_of_week.nil?
+    end
+
+    def recurring?
+      !@frequency.nil? || !@day_of_week.nil? || !@last_done.nil?
     end
 
     def dropped_or_done?

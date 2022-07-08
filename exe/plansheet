@@ -26,6 +26,10 @@ parser.on(
   "Various stats (WIP)"
 )
 parser.on(
+  "--time-roi",
+  "Show projects with a time return-on-investment"
+)
+parser.on(
   "--calendar",
   "List of projects ordered by due date"
 )
@@ -54,6 +58,13 @@ elsif options[:stats]
 elsif options[:sort]
   # Pool sorts projects, this now just matches old behaviour
   pool.write_projects
+elsif options[:"time-roi"]
+  project_arr = pool.projects.select {|x| x.time_roi_payoff != 0 && !x.dropped_or_done?}.sort
+  project_arr.each do |proj|
+    puts proj
+    puts "time ROI payoff: #{proj.time_roi_payoff}"
+    puts "\n"
+  end
 elsif options[:calendar]
   # TODO: add a project filter method
   project_arr = pool.projects

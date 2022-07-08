@@ -121,6 +121,12 @@ module Plansheet
       # Add a created_on field if it doesn't exist
       instance_variable_set("@created_on", Date.today) unless @created_on
 
+      # Handle nil-value tasks
+      if @tasks
+        @tasks.compact!
+        remove_instance_variable("@tasks") if @tasks.empty?
+      end
+
       # Generate time estimate from tasks if specified
       # Stomps time_estimate field
       if @tasks

@@ -424,6 +424,29 @@ class TestProjectInputs < Minitest::Test
       ],
       [
         {
+          "project" => "nil task 1",
+          "tasks" => ["a", nil, "b"]
+        },
+        {
+          "project" => "nil task 1",
+          "tasks" => %w[a b],
+          "namespace" => nil,
+          "created_on" => Date.today
+        }
+      ],
+      [
+        {
+          "project" => "nil task 2",
+          "tasks" => [nil]
+        },
+        {
+          "project" => "nil task 2",
+          "namespace" => nil,
+          "created_on" => Date.today
+        }
+      ],
+      [
+        {
           "project" => "stale defer",
           "created_on" => Date.today - 2,
           "defer" => Date.today - 1

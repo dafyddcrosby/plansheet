@@ -59,7 +59,7 @@ elsif options[:sort]
   # Pool sorts projects, this now just matches old behaviour
   pool.write_projects
 elsif options[:"time-roi"]
-  project_arr = pool.projects.select {|x| x.time_roi_payoff != 0 && !x.dropped_or_done?}.sort
+  project_arr = pool.projects.select { |x| x.time_roi_payoff != 0 && !x.dropped_or_done? }.sort
   project_arr.each do |proj|
     puts proj
     puts "time ROI payoff: #{proj.time_roi_payoff}"

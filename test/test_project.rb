@@ -8,15 +8,12 @@ Plansheet::Pool::POOL_COMPARISON_ORDER = Plansheet::Pool::DEFAULT_COMPARISON_ORD
 require "plansheet/project"
 
 class TestProjectInputs < Minitest::Test
-  def test_due
+  def test_implied_due
     # Empty project
     assert_nil Plansheet::Project.new({}).due
 
     # Non-empty projects
     [
-      # Explicit due
-      [{ "due" => Date.today }, Date.today],
-
       # First-time recurring due
       [{ "frequency" => "1w" }, Date.today],
 
@@ -83,20 +80,10 @@ class TestProjectInputs < Minitest::Test
     end
   end
 
-  def test_status
+  def test_implied_status
     [
       # Empty project
       [{}, "idea"],
-
-      # Explicit status
-      [{ "status" => "idea" }, "idea"],
-      [{ "status" => "dropped" }, "dropped"],
-      [{ "status" => "done" }, "done"],
-      [{ "status" => "wip" }, "wip"],
-      [{ "status" => "ready" }, "ready"],
-      [{ "status" => "blocked" }, "blocked"],
-      [{ "status" => "planning" }, "planning"],
-      [{ "status" => "waiting" }, "waiting"],
 
       # Task-based status
       [{ "tasks" => [] }, "idea"],
@@ -129,49 +116,6 @@ class TestProjectInputs < Minitest::Test
       [{ "completed_on" => Date.today }, "done"]
     ].each do |proj, status|
       assert_equal status, Plansheet::Project.new(proj).status
-    end
-  end
-
-  def test_time_estimate_minutes
-    [
-      [{ "project" => "Empty project" }, nil],
-      [{
-        "project" => "Explicit time_estimate",
-        "time_estimate" => "60m"
-      }, 60],
-      [{
-        "project" => "Single task with estimate",
-        "tasks" => ["half hour task (30m)"]
-      }, 30],
-      [{
-        "project" => "Multiple tasks with estimate",
-        "tasks" => [
-          "task a (10m)",
-          "task b (10m)",
-          "task c (10m)"
-        ]
-      }, 30],
-      [{
-        "project" => "Multiple tasks with estimate mixed with none",
-        "tasks" => [
-          "task a (10m)",
-          "task b",
-          "task c (10m)",
-          "task d",
-          "task e (10m)"
-        ]
-      }, 30],
-      [{
-        "project" => "Estimate tasks and stale time estimate",
-        "time_estimate" => "20m", # Pretend we've added another task
-        "tasks" => [
-          "task a (10m)",
-          "task b (10m)",
-          "task c (10m)"
-        ]
-      }, 30]
-    ].each do |proj, minutes|
-      assert_equal minutes, Plansheet::Project.new(proj).time_estimate_minutes, proj
     end
   end
 
@@ -407,126 +351,153 @@ class TestProjectInputs < Minitest::Test
     end
   end
 
+  def duplicate_hash_expected(hsh)
+    # TODO: can we get away with a clone operation here?
+    [hsh, Marshal.load(Marshal.dump(hsh))]
+  end
+
   def test_to_h
-    # While it's tempting to remove nil namespaces, they should typically have
-    # values in normal use, so checking + deleting them from output would just
-    # add processing overhead
+    # These projects should have almost identical outputs (save for namespace on created_on)
     [
+      { "project" => "empty project" },
+      { "project" => "explicit status - idea", "status" => "idea" },
+      { "project" => "explicit status - dropped", "status" => "dropped" },
+      { "project" => "explicit status - done", "status" => "done" },
+      { "project" => "explicit status - wip", "status" => "wip" },
+      { "project" => "explicit status - ready", "status" => "ready" },
+      { "project" => "explicit status - blocked", "status" => "blocked" },
+      { "project" => "explicit status - planning", "status" => "planning" },
+      { "project" => "explicit status - waiting", "status" => "waiting" },
+      { "project" => "explicit due", "due" => Date.today },
+      {
+        "project" => "project with non-low priority",
+        "priority" => "high"
+      },
+      {
+        "project" => "project with non-idea status",
+        "status" => "ready"
+      },
+      {
+        "project" => "project with explicit time_estimate 30m",
+        "time_estimate" => "30m"
+      }
+    ].map { |x| duplicate_hash_expected(x) } +
+      # The following test cases have some sort of mutation
       [
-        {
-          "project" => "empty project"
-        },
-        {
-          "project" => "empty project",
-          "namespace" => nil,
-          "created_on" => Date.today
-        }
-      ],
-      [
-        {
-          "project" => "nil task 1",
-          "tasks" => ["a", nil, "b"]
-        },
-        {
-          "project" => "nil task 1",
-          "tasks" => %w[a b],
-          "namespace" => nil,
-          "created_on" => Date.today
-        }
-      ],
-      [
-        {
-          "project" => "nil task 2",
-          "tasks" => [nil]
-        },
-        {
-          "project" => "nil task 2",
-          "namespace" => nil,
-          "created_on" => Date.today
-        }
-      ],
-      [
-        {
-          "project" => "stale defer",
-          "created_on" => Date.today - 2,
-          "defer" => Date.today - 1
-        },
-        {
-          "project" => "stale defer",
-          "namespace" => nil,
-          "created_on" => Date.today - 2
-        }
-      ],
-      [
-        {
-          "project" => "project with non-low priority",
-          "priority" => "high"
-        },
-        {
-          "project" => "project with non-low priority",
-          "priority" => "high",
-          "namespace" => nil,
-          "created_on" => Date.today
-        }
-      ],
-      [
-        {
-          "project" => "project with non-idea status",
-          "status" => "ready"
-        },
-        {
-          "project" => "project with non-idea status",
-          "status" => "ready",
-          "namespace" => nil,
-          "created_on" => Date.today
-        }
-      ],
-      [
-        {
-          "project" => "project with explicit time_estimate 30m",
-          "time_estimate" => "30m"
-        },
-        {
-          "project" => "project with explicit time_estimate 30m",
-          "time_estimate" => "30m",
-          "namespace" => nil,
-          "created_on" => Date.today
-        }
-      ],
-      [
-        {
-          "project" => "project with explicit time_estimate 60m",
-          "time_estimate" => "60m"
-        },
-        {
-          "project" => "project with explicit time_estimate 60m",
-          "time_estimate" => "1h",
-          "namespace" => nil,
-          "created_on" => Date.today
-        }
-      ],
-      [
-        {
-          "project" => "project with implied time_estimate",
-          "tasks" => [
-            "task a (15m)",
-            "task b (15m)"
-          ]
-        },
-        {
-          "project" => "project with implied time_estimate",
-          "time_estimate" => "30m",
-          "tasks" => [
-            "task a (15m)",
-            "task b (15m)"
-          ],
-          "namespace" => nil,
-          "created_on" => Date.today
-        }
-      ]
-    ].each do |proj, p_to_h_results|
-      assert_equal p_to_h_results, Plansheet::Project.new(proj).to_h, proj
-    end
+        [
+          {
+            "project" => "nil task 1",
+            "tasks" => ["a", nil, "b"]
+          },
+          {
+            "project" => "nil task 1",
+            "tasks" => %w[a b]
+          }
+        ],
+        [
+          {
+            "project" => "nil task 2",
+            "tasks" => [nil]
+          },
+          {
+            "project" => "nil task 2"
+          }
+        ],
+        [
+          {
+            "project" => "stale defer",
+            "created_on" => Date.today - 2,
+            "defer" => Date.today - 1
+          },
+          {
+            "project" => "stale defer",
+            "created_on" => Date.today - 2
+          }
+        ],
+        [
+          {
+            "project" => "project with explicit time_estimate 60m",
+            "time_estimate" => "60m"
+          },
+          {
+            "project" => "project with explicit time_estimate 60m",
+            "time_estimate" => "1h" # NOTE: change from 60m to 1h
+          }
+        ],
+        [
+          {
+            "project" => "project with implied time_estimate (single)",
+            "tasks" => [
+              "task (15m)"
+            ]
+          },
+          {
+            "project" => "project with implied time_estimate (single)",
+            "time_estimate" => "15m",
+            "tasks" => [
+              "task (15m)"
+            ]
+          }
+        ],
+        [
+          {
+            "project" => "project with implied time_estimate (stale explicit)",
+            "time_estimate" => "55m",
+            "tasks" => [
+              "task (15m)"
+            ]
+          },
+          {
+            "project" => "project with implied time_estimate (stale explicit)",
+            "time_estimate" => "15m",
+            "tasks" => [
+              "task (15m)"
+            ]
+          }
+        ],
+        [
+          {
+            "project" => "project with implied time_estimate (multiple)",
+            "tasks" => [
+              "task a (15m)",
+              "task b (15m)"
+            ]
+          },
+          {
+            "project" => "project with implied time_estimate (multiple)",
+            "time_estimate" => "30m",
+            "tasks" => [
+              "task a (15m)",
+              "task b (15m)"
+            ]
+          }
+        ],
+        [
+          {
+            "project" => "project with implied time_estimate (multiple with missing)",
+            "tasks" => [
+              "task a (15m)",
+              "task with no estimate",
+              "task b (15m)"
+            ]
+          },
+          {
+            "project" => "project with implied time_estimate (multiple with missing)",
+            "time_estimate" => "30m",
+            "tasks" => [
+              "task a (15m)",
+              "task with no estimate",
+              "task b (15m)"
+            ]
+          }
+        ]
+      ].each do |proj, p_to_h_results|
+        # handle here for brevity of expected results
+        p_to_h_results["namespace"] = nil
+        p_to_h_results["created_on"] ||= Date.today
+
+        assert_equal p_to_h_results, Plansheet::Project.new(proj).to_h, proj
+      end
   end
 end
 

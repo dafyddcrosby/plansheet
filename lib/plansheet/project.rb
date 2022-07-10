@@ -340,8 +340,6 @@ module Plansheet
       ALL_PROPERTIES.each do |prop|
         h[prop] = instance_variable_get("@#{prop}") if instance_variable_defined?("@#{prop}")
       end
-      h.delete "priority" if h.key?("priority") && h["priority"] == "low"
-      h.delete "status" if h.key?("status") && h["status"] == "idea"
       h
     end
   end

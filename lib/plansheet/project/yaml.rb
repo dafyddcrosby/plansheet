@@ -189,12 +189,29 @@ module Plansheet
       @projects.sort!
     end
 
-    def write
-      File.write @path, yaml_dump
+    def compare_and_write(projects)
+      updated_projects_string = yaml_dump(projects)
+
+      # Compare the existing file to the newly generated one - we only want a
+      # write if something has changed
+      return if updated_projects_string == yaml_dump(load_file)
+
+      puts "#{@path} has changed, writing"
+      require "diffy"
+      puts Diffy::Diff.new(updated_projects_string, yaml_dump(load_file)).to_s(:color)
+      File.write @path, updated_projects_string
     end
 
-    def yaml_dump
-      YAML.dump(@projects.map { |x| x.to_h.delete_if { |k, _| k == "namespace" } })
+    def yaml_dump(projects)
+      # binding.irb if projects.nil?
+      YAML.dump(projects.map do |x|
+        x.to_h.delete_if do |k, v|
+          # Remove low-value default noise from projects
+          k == "namespace" ||
+           (k == "priority" && v == "low") ||
+           (k == "status" && v == "idea")
+        end
+      end)
     end
   end
 end

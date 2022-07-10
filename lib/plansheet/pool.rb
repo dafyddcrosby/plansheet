@@ -89,8 +89,7 @@ module Plansheet
       # to keep a list of project files to delete
       project_namespaces.each do |ns|
         pyf = ProjectYAMLFile.new "#{@projects_dir}/#{ns}.yml"
-        pyf.projects = projects_in_namespace(ns)
-        pyf.write
+        pyf.compare_and_write projects_in_namespace(ns)
       end
     end
 

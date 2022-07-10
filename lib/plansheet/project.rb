@@ -182,6 +182,20 @@ module Plansheet
       PROJECT_STATUS_PRIORITY[status] <=> PROJECT_STATUS_PRIORITY[other.status]
     end
 
+    # This seems silly at first glance, but it's to keep projects from flipping
+    # around on each sort when they are equal in all other respects
+    def compare_name(other)
+      @name <=> other.name
+    end
+
+    def compare_completed_on(other)
+      retval = 0
+      retval += 1 if @completed_on
+      retval -= 1 if other.completed_on
+      retval = (other.completed_on <=> @completed_on) if retval.zero?
+      retval
+    end
+
     def compare_due(other)
       # -1 is receiving object being older
 

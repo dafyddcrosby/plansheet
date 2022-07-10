@@ -10,12 +10,14 @@ module Plansheet
 
     DEFAULT_COMPARISON_ORDER = %w[
       completeness
+      completed_on
       dependency
       priority
       defer
       due
       time_roi
       status
+      name
     ].freeze
 
     def initialize(config, debug: false)

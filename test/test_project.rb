@@ -527,6 +527,30 @@ class TestProjectComparison < Minitest::Test
     end
   end
 
+  def test_name_comparison
+    add_inverted_test_cases(
+      [
+        [{}, {}, 0],
+        [{ "project" => "a" }, { "project" => "b" }, -1]
+      ]
+    ).each do |x, y, e|
+      assert_equal e, Plansheet::Project.new(x).compare_name(Plansheet::Project.new(y))
+    end
+  end
+
+  def test_completed_on_comparison
+    add_inverted_test_cases(
+      [
+        [{}, {}, 0],
+        [{ "completed_on" => Date.today }, {}, 1],
+        [{ "completed_on" => Date.today }, { "completed_on" => Date.today }, 0],
+        [{ "completed_on" => Date.today - 1 }, { "completed_on" => Date.today }, 1]
+      ]
+    ).each do |x, y, e|
+      assert_equal e, Plansheet::Project.new(x).compare_completed_on(Plansheet::Project.new(y))
+    end
+  end
+
   def test_completeness_comparison
     add_inverted_test_cases(
       [

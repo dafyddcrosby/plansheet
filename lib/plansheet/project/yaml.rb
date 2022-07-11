@@ -198,7 +198,7 @@ module Plansheet
 
       puts "#{@path} has changed, writing"
       require "diffy"
-      puts Diffy::Diff.new(updated_projects_string, yaml_dump(load_file)).to_s(:color)
+      puts Diffy::Diff.new(yaml_dump(load_file), updated_projects_string).to_s(:color)
       File.write @path, updated_projects_string
     end
 

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    plansheet (0.24.1)
+    plansheet (0.24.2)
       dc-kwalify (~> 1.0)
       diffy (= 3.4.2)
       rgl (= 0.5.8)

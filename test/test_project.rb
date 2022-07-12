@@ -386,6 +386,50 @@ class TestProjectInputs < Minitest::Test
       [
         [
           {
+            "project" => "convert status: done to completed_on: today",
+            "status" => "done"
+          },
+          {
+            "project" => "convert status: done to completed_on: today",
+            "completed_on" => Date.today
+          }
+        ],
+        [
+          {
+            "project" => "removes time_estimate if project is done",
+            "time_estimate" => "30m",
+            "status" => "done"
+          },
+          {
+            "project" => "removes time_estimate if project is done",
+            "completed_on" => Date.today
+          }
+        ],
+        [
+          {
+            "project" => "convert all done tasks to completed_on: today",
+            "done" => %w[foo bar]
+          },
+          {
+            "project" => "convert all done tasks to completed_on: today",
+            "done" => %w[foo bar],
+            "completed_on" => Date.today
+          }
+        ],
+        [
+          {
+            "project" => "doesn't add completed_on if task is recurring",
+            "frequency" => "1w",
+            "done" => %w[foo bar]
+          },
+          {
+            "project" => "doesn't add completed_on if task is recurring",
+            "frequency" => "1w",
+            "done" => %w[foo bar]
+          }
+        ],
+        [
+          {
             "project" => "nil task 1",
             "tasks" => ["a", nil, "b"]
           },

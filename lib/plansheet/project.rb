@@ -138,12 +138,20 @@ module Plansheet
         # Convert the field to minutes
         @time_estimate_minutes = Plansheet.parse_time_duration(@time_estimate)
       end
-      if @time_estimate_minutes # rubocop:disable Style/GuardClause
+      if @time_estimate_minutes
         # Rewrite time_estimate field
         @time_estimate = Plansheet.build_time_duration(@time_estimate_minutes)
 
         yms = yearly_minutes_saved
         @time_roi_payoff = yms.to_f / @time_estimate_minutes if yms
+      end
+
+      if done?
+        @completed_on ||= Date.today unless recurring?
+        remove_instance_variable("@status") if @status
+        remove_instance_variable("@time_estimate") if @time_estimate
+        remove_instance_variable("@time_estimate_minutes") if @time_estimate
+        remove_instance_variable("@time_roi_payoff") if @time_roi_payoff
       end
     end
 
@@ -343,6 +351,10 @@ module Plansheet
 
     def dropped_or_done?
       status == "dropped" || status == "done"
+    end
+
+    def done?
+      status == "done"
     end
 
     def self.task_time_estimate(str)

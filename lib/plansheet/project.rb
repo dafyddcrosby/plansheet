@@ -295,11 +295,6 @@ module Plansheet
       task_based_status
     end
 
-    def process_recurring
-      # TODO: Tasks will be moved from done->tasks if recurring project is
-      # starting again
-    end
-
     # Due date either explicit or recurring
     def due
       return @due if @due

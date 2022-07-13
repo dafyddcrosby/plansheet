@@ -243,6 +243,16 @@ class TestProjectInputs < Minitest::Test
         due: Date.today,
         defer: Date.today
       },
+      # TODO: add rest of last_for cases
+      {
+        name: "Implied first time - last_for",
+        proj: {
+          "last_for" => "1w"
+        },
+        recurring: true,
+        status: "idea",
+        defer: Date.today
+      },
       {
         name: "Implied first time - day-of-week",
         proj: {

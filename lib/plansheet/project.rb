@@ -329,6 +329,8 @@ module Plansheet
 
     def last_for_deferral
       return @last_done + Plansheet.parse_date_duration(@last_for) if @last_done
+
+      Date.today
     end
 
     def lead_time_deferral
@@ -341,7 +343,7 @@ module Plansheet
     end
 
     def recurring?
-      !@frequency.nil? || !@day_of_week.nil? || !@last_done.nil?
+      !@frequency.nil? || !@day_of_week.nil? || !@last_done.nil? || !@last_for.nil?
     end
 
     def dropped_or_done?

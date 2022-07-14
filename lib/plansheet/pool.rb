@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "pathname"
 require "rgl/adjacency"
 require "rgl/topsort"
 
@@ -23,7 +24,6 @@ module Plansheet
     def initialize(config, debug: false)
       @projects_dir = config[:projects_dir]
       @sort_order = config[:sort_order]
-      # @completed_projects_dir = config(:completed_projects_dir)
 
       # This bit of trickiness is because we don't know what the sort order is
       # until runtime. I'm sure this design decision definitely won't bite me
@@ -77,6 +77,25 @@ module Plansheet
       @projects.sort!
     end
 
+    def archive_projects
+      archive_dir = "#{@projects_dir}/archive/"
+      Dir.mkdir archive_dir unless Dir.exist? archive_dir
+
+      # NOTE: It would save writes if we sorted and did all month/namespaces
+      # writes only once, but as the normal case only sees a few projects
+      # archived at a time, I'll leave that for someone else to implement ;-)
+      projects_to_archive = @projects.select(&:archivable?)
+      projects_to_archive.each do |project|
+        path = Pathname.new "#{archive_dir}/#{project.completed_on_month}/#{project.namespace}.yml"
+        Dir.mkdir path.dirname unless path.dirname.exist?
+        pyf = ProjectYAMLFile.new path
+        pyf.append_project project
+      end
+
+      # Now that the projects have been archived, remove them from the pool
+      @projects.reject!(&:archivable?)
+    end
+
     def project_namespaces
       @projects.collect(&:namespace).uniq.sort
     end
@@ -86,12 +105,16 @@ module Plansheet
     end
 
     def write_projects
-      # TODO: This leaves potential for duplicate projects where empty files
-      # are involved once completed project directories are a thing - will need
-      # to keep a list of project files to delete
-      project_namespaces.each do |ns|
+      # Collect the namespaces *before* archiving is done, for the case where
+      # all active projects in a namespace have been completed and archived
+      namespaces_before_archiving = project_namespaces
+
+      archive_projects
+
+      namespaces_before_archiving.each do |ns|
+        projects = projects_in_namespace(ns)
         pyf = ProjectYAMLFile.new "#{@projects_dir}/#{ns}.yml"
-        pyf.compare_and_write projects_in_namespace(ns)
+        pyf.compare_and_write projects
       end
     end
 

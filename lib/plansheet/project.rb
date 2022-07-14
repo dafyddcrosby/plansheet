@@ -155,6 +155,10 @@ module Plansheet
       end
     end
 
+    def completed_on_month
+      @completed_on&.strftime("%Y-%m")
+    end
+
     def yearly_minutes_saved
       if @daily_time_roi
         Plansheet.parse_time_duration(@daily_time_roi) * 365
@@ -352,6 +356,10 @@ module Plansheet
 
     def done?
       status == "done"
+    end
+
+    def archivable?
+      !recurring? && @completed_on
     end
 
     def self.task_time_estimate(str)

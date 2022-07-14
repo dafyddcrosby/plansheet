@@ -4,6 +4,7 @@ require "yaml"
 require "date"
 require "pathname"
 
+require "diffy"
 require "kwalify"
 
 module Plansheet
@@ -152,7 +153,13 @@ module Plansheet
       # TODO: this won't GC, inline validation instead?
     end
 
+    def stub_file
+      File.write @path, YAML.dump([])
+    end
+
     def load_file
+      stub_file unless File.exist? @path
+
       # Handle pre-Ruby 3.1 psych versions (this is brittle)
       @raw = if Psych::VERSION.split(".")[0].to_i >= 4
                YAML.load_file(@path, permitted_classes: [Date])
@@ -189,16 +196,22 @@ module Plansheet
       @projects.sort!
     end
 
+    def append_project(project)
+      load_file
+      compare_and_write(@projects.append(project))
+    end
+
     def compare_and_write(projects)
+      load_file
+      orig_string = yaml_dump(@projects)
       updated_projects_string = yaml_dump(projects)
 
       # Compare the existing file to the newly generated one - we only want a
       # write if something has changed
-      return if updated_projects_string == yaml_dump(load_file)
+      return if updated_projects_string == orig_string
 
       puts "#{@path} has changed, writing"
-      require "diffy"
-      puts Diffy::Diff.new(yaml_dump(load_file), updated_projects_string).to_s(:color)
+      puts Diffy::Diff.new(orig_string, updated_projects_string).to_s(:color)
       File.write @path, updated_projects_string
     end
 

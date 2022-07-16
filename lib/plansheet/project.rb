@@ -4,6 +4,7 @@ require "yaml"
 require "date"
 require_relative "project/yaml"
 require_relative "project/stringify"
+require_relative "./time"
 
 # Needed for Project#time_estimate, would be much happier *not* patching Array
 class Array
@@ -30,36 +31,6 @@ module Plansheet
     [d.strftime("%A"), d]
   end.freeze
 
-  def self.parse_date_duration(str)
-    return Regexp.last_match(1).to_i if str.strip.match(/(\d+)[dD]/)
-    return (Regexp.last_match(1).to_i * 7) if str.strip.match(/(\d+)[wW]/)
-
-    raise "Can't parse time duration string #{str}"
-  end
-
-  def self.parse_time_duration(str)
-    if str.match(/(\d+h) (\d+m)/)
-      return (parse_time_duration(Regexp.last_match(1)) + parse_time_duration(Regexp.last_match(2)))
-    end
-
-    return Regexp.last_match(1).to_i if str.strip.match(/(\d+)m/)
-    return (Regexp.last_match(1).to_f * 60).to_i if str.strip.match(/(\d+\.?\d*)h/)
-
-    raise "Can't parse time duration string #{str}"
-  end
-
-  def self.build_time_duration(minutes)
-    if minutes > 59
-      if (minutes % 60).zero?
-        "#{minutes / 60}h"
-      else
-        "#{minutes / 60}h #{minutes % 60}m"
-      end
-    else
-      "#{minutes}m"
-    end
-  end
-
   # The use of instance_variable_set/get probably seems a bit weird, but the
   # intent is to avoid object allocation on non-existent project properties, as
   # well as avoiding a bunch of copy-paste boilerplate when adding a new
@@ -68,6 +39,7 @@ module Plansheet
   # unwrap the loops if it's not needed.
   class Project
     include Comparable
+    include Plansheet::TimeUtils
 
     TIME_EST_REGEX = /\((\d+\.?\d*[mMhH])\)$/.freeze
     TIME_EST_REGEX_NO_CAPTURE = /\(\d+\.?\d*[mMhH]\)$/.freeze
@@ -132,15 +104,15 @@ module Plansheet
       if @tasks
         @time_estimate_minutes = @tasks&.select do |t|
                                    t.match? TIME_EST_REGEX_NO_CAPTURE
-                                 end&.nil_if_empty&.map { |t| Plansheet::Project.task_time_estimate(t) }&.sum
+                                 end&.nil_if_empty&.map { |t| task_time_estimate(t) }&.sum
       elsif @time_estimate
         # No tasks with estimates, but there's an explicit time_estimate
         # Convert the field to minutes
-        @time_estimate_minutes = Plansheet.parse_time_duration(@time_estimate)
+        @time_estimate_minutes = parse_time_duration(@time_estimate)
       end
       if @time_estimate_minutes
         # Rewrite time_estimate field
-        @time_estimate = Plansheet.build_time_duration(@time_estimate_minutes)
+        @time_estimate = build_time_duration(@time_estimate_minutes)
 
         yms = yearly_minutes_saved
         @time_roi_payoff = yms.to_f / @time_estimate_minutes if yms
@@ -161,11 +133,11 @@ module Plansheet
 
     def yearly_minutes_saved
       if @daily_time_roi
-        Plansheet.parse_time_duration(@daily_time_roi) * 365
+        parse_time_duration(@daily_time_roi) * 365
       elsif @weekly_time_roi
-        Plansheet.parse_time_duration(@weekly_time_roi) * 52
+        parse_time_duration(@weekly_time_roi) * 52
       elsif @yearly_time_roi
-        Plansheet.parse_time_duration(@yearly_time_roi)
+        parse_time_duration(@yearly_time_roi)
       end
     end
 
@@ -309,7 +281,7 @@ module Plansheet
 
     def recurring_due_date
       if @last_done
-        return @last_done + Plansheet.parse_date_duration(@frequency) if @frequency
+        return @last_done + parse_date_duration(@frequency) if @frequency
 
         if @day_of_week
           return Date.today + 7 if @last_done == Date.today
@@ -332,13 +304,13 @@ module Plansheet
     end
 
     def last_for_deferral
-      return @last_done + Plansheet.parse_date_duration(@last_for) if @last_done
+      return @last_done + parse_date_duration(@last_for) if @last_done
 
       Date.today
     end
 
     def lead_time_deferral
-      [(due - Plansheet.parse_date_duration(@lead_time)),
+      [(due - parse_date_duration(@lead_time)),
        Date.today].max
     end
 
@@ -362,8 +334,8 @@ module Plansheet
       !recurring? && @completed_on
     end
 
-    def self.task_time_estimate(str)
-      Plansheet.parse_time_duration(Regexp.last_match(1)) if str.match(TIME_EST_REGEX)
+    def task_time_estimate(str)
+      parse_time_duration(Regexp.last_match(1)) if str.match(TIME_EST_REGEX)
     end
 
     def to_h

@@ -119,57 +119,6 @@ class TestProjectInputs < Minitest::Test
     end
   end
 
-  def test_parse_date_duration
-    [
-      ["1d", 1],
-      ["5d", 5],
-      ["88d", 88],
-      ["1w", 7],
-      ["10w", 70]
-    ].each do |str, days|
-      assert_equal days, Plansheet.parse_date_duration(str)
-    end
-  end
-
-  def test_build_time_duration
-    [
-      [30, "30m"],
-      [60, "1h"],
-      [120, "2h"],
-      [150, "2h 30m"]
-    ].each do |minutes, str|
-      assert_equal str, Plansheet.build_time_duration(minutes)
-    end
-  end
-
-  def test_parse_time_duration
-    [
-      ["1m", 1],
-      ["5m", 5],
-      ["60m", 60],
-      ["88m", 88],
-      ["1h", 60],
-      ["1.5h", 90],
-      ["2.5h", 150],
-      ["10h", 600]
-    ].each do |str, minutes|
-      assert_equal minutes, Plansheet.parse_time_duration(str)
-    end
-  end
-
-  def test_task_time_estimate
-    [
-      ["task a (30m)", 30],
-      ["task b (2h)", 120],
-      ["task c (1.5h)", 90],
-      ["(1.5h)", 90], # Weird, but legal for implementation reasons
-      ["task d (1.5h) ", nil],
-      ["task (1.5h) e", nil]
-    ].each do |str, minutes|
-      assert_equal minutes, Plansheet::Project.task_time_estimate(str)
-    end
-  end
-
   def test_time_roi_payoff
     [
       [
@@ -390,6 +339,13 @@ class TestProjectInputs < Minitest::Test
       {
         "project" => "project with explicit time_estimate 30m",
         "time_estimate" => "30m"
+      },
+      {
+        "project" => "project with unparseable task time durations",
+        "tasks" => [
+          "task d (1.5h) ", # trailing space
+          "task (1.5h) e" # trailing characters
+        ]
       }
     ].map { |x| duplicate_hash_expected(x) } +
       # The following test cases have some sort of mutation
@@ -523,6 +479,23 @@ class TestProjectInputs < Minitest::Test
             "tasks" => [
               "task a (15m)",
               "task b (15m)"
+            ]
+          }
+        ],
+        [
+          {
+            "project" => "task with missing task name",
+            "tasks" => [
+              "normal task (1.5h)",
+              "(1.5h)" # Weird, but legal for implementation reasons
+            ]
+          },
+          {
+            "project" => "task with missing task name",
+            "time_estimate" => "3h",
+            "tasks" => [
+              "normal task (1.5h)",
+              "(1.5h)"
             ]
           }
         ],

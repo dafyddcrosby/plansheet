@@ -1,8 +1,10 @@
 # Plansheet
 
-Plansheet is a simple to-do list generator program that creates a
-structured printout (a la [pandoc](https://pandoc.org)) from a
-pile of formatted [YAML](https://yaml.org) files. Still very much a work-in-progress
+Plansheet is a simple to-do list generator program that creates a LaTeX
+printout (that can be turned into a PDF by pdflatex) from a pile of formatted
+[YAML](https://yaml.org) files.
+
+Plansheet is still a work-in-progress, and while effort is made not to break over minor/patch versions, it's best effort. If you aren't comfortable with fixing Ruby using a lot of metaprogramming, check back in a year or two
 
 ## Installation
 

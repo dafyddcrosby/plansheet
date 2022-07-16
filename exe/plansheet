@@ -47,7 +47,7 @@ pool = Plansheet::Pool.new({ projects_dir: config["projects_dir"],
 if options[:sheet] || options.empty?
   require "plansheet/sheet"
   Dir.mkdir config["output_dir"] unless Dir.exist? config["output_dir"]
-  Plansheet::Sheet.new("#{config["output_dir"]}/projects.md", pool.projects)
+  Plansheet::LaTeXSheet.new("#{config["output_dir"]}/projects.tex", pool.projects)
 elsif options[:irb]
   binding.irb # rubocop:disable Lint/Debugger
 elsif options[:stats]

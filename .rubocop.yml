@@ -1,24 +1,5 @@
+inherit_gem:
+  dc-rubocop: default.yml
+
 AllCops:
   TargetRubyVersion: 2.6
-  NewCops: enable
-  SuggestExtensions: false
-
-Style/StringLiterals:
-  Enabled: true
-  EnforcedStyle: double_quotes
-
-Style/StringLiteralsInInterpolation:
-  Enabled: true
-  EnforcedStyle: double_quotes
-
-Style/GuardClause:
-  Enabled: false
-
-Layout/LineLength:
-  Max: 120
-
-Metrics:
-  Enabled: false
-
-Style/Documentation:
-  Enabled: false

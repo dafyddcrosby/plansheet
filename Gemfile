@@ -12,6 +12,7 @@ group :development, optional: true do
   gem "rake", "~> 13.0"
   gem "rdoc"
 
+  gem "dc-rubocop"
   gem "rubocop", "~> 1.21"
   gem "rubocop-minitest"
   gem "rubocop-rake"

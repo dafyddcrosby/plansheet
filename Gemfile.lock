@@ -11,6 +11,15 @@ GEM
   specs:
     ast (2.4.2)
     coderay (1.1.3)
+    dc-devtools (0.0.202207232239)
+      dc-rubocop (>= 0.0.3)
+      guard (~> 2.18)
+      guard-rake (~> 1.0)
+      minitest
+      rake (~> 13.0)
+      rubocop (~> 1.30)
+      rubocop-minitest
+      rubocop-rake (~> 0.6)
     dc-kwalify (1.0.0)
     dc-rubocop (0.0.3)
       rubocop
@@ -30,13 +39,14 @@ GEM
     guard-rake (1.0.0)
       guard
       rake
+    json (2.6.2)
     lazy_priority_queue (0.1.1)
     listen (3.7.1)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
     lumberjack (1.2.8)
     method_source (1.0.0)
-    minitest (5.15.0)
+    minitest (5.16.2)
     nenv (0.3.0)
     notiffany (0.1.3)
       nenv (~> 0.1)
@@ -56,24 +66,25 @@ GEM
       ffi (~> 1.0)
     rdoc (6.4.0)
       psych (>= 4.0.0)
-    regexp_parser (2.4.0)
+    regexp_parser (2.5.0)
     rexml (3.2.5)
     rgl (0.5.8)
       lazy_priority_queue (~> 0.1.0)
       rexml (~> 3.2, >= 3.2.4)
       stream (~> 0.5.3)
-    rubocop (1.29.1)
+    rubocop (1.32.0)
+      json (~> 2.3)
       parallel (~> 1.10)
       parser (>= 3.1.0.0)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 1.8, < 3.0)
       rexml (>= 3.2.5, < 4.0)
-      rubocop-ast (>= 1.17.0, < 2.0)
+      rubocop-ast (>= 1.19.1, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 3.0)
-    rubocop-ast (1.18.0)
+    rubocop-ast (1.19.1)
       parser (>= 3.1.1.0)
-    rubocop-minitest (0.20.0)
+    rubocop-minitest (0.20.1)
       rubocop (>= 0.90, < 2.0)
     rubocop-rake (0.6.0)
       rubocop (~> 1.0)
@@ -83,22 +94,15 @@ GEM
       generator
     stringio (3.0.2)
     thor (1.2.1)
-    unicode-display_width (2.1.0)
+    unicode-display_width (2.2.0)
 
 PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  dc-rubocop
-  guard (~> 2.18)
-  guard-rake (~> 1.0)
-  minitest (~> 5.0)
+  dc-devtools
   plansheet!
-  rake (~> 13.0)
   rdoc
-  rubocop (~> 1.21)
-  rubocop-minitest
-  rubocop-rake
 
 BUNDLED WITH
    2.3.6

@@ -42,6 +42,8 @@ module Plansheet
               - blocked # project is blocked by another project, but otherwise ready/wip
               - planning # project in planning phase (set manually)
               - idea # project is little more than an idea
+              - paused # project shouldn't be archived, but should be excluded from
+                       # generated output unless paused projects are requested
               - dropped # project has been explicitly dropped, but
                         # want to keep around for reference, etc
               - done # project is finished, but want to keep around
@@ -102,6 +104,9 @@ module Plansheet
             type: date
           "dropped_on":
             desc: When the project was dropped
+            type: date
+          "paused_on":
+            desc: When the project was paused
             type: date
           "created_on":
             desc: When the project was created

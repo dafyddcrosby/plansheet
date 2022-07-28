@@ -21,8 +21,9 @@ module Plansheet
     "waiting" => 4,
     "planning" => 5,
     "idea" => 6,
-    "dropped" => 7,
-    "done" => 8
+    "paused" => 7,
+    "dropped" => 8,
+    "done" => 9
   }.freeze
 
   # Pre-compute the next days-of-week
@@ -55,7 +56,7 @@ module Plansheet
     # namespace is derived from file name
     STRING_PROPERTIES = %w[priority status location notes time_estimate daily_time_roi weekly_time_roi yearly_time_roi
                            day_of_week frequency last_for lead_time].freeze
-    DATE_PROPERTIES = %w[due defer dropped_on completed_on created_on starts_on last_done
+    DATE_PROPERTIES = %w[due defer paused_on dropped_on completed_on created_on starts_on last_done
                          last_reviewed].freeze
     ARRAY_PROPERTIES = %w[dependencies externals urls tasks done tags].freeze
 
@@ -125,6 +126,9 @@ module Plansheet
         remove_instance_variable("@time_estimate") if @time_estimate
         remove_instance_variable("@time_estimate_minutes") if @time_estimate
         remove_instance_variable("@time_roi_payoff") if @time_roi_payoff
+      elsif paused?
+        @paused_on ||= Date.today
+        remove_instance_variable("@status") if @status
       elsif dropped?
         @dropped_on ||= Date.today
         remove_instance_variable("@status") if @status
@@ -241,6 +245,7 @@ module Plansheet
       return task_based_status if @tasks || @done
       return "done" if @completed_on && @tasks.nil?
       return "dropped" if @dropped_on
+      return "paused" if @paused_on
 
       "idea"
     end
@@ -325,6 +330,10 @@ module Plansheet
 
     def recurring?
       !@frequency.nil? || !@day_of_week.nil? || !@last_done.nil? || !@last_for.nil?
+    end
+
+    def paused?
+      status == "paused"
     end
 
     def dropped?

@@ -320,6 +320,7 @@ class TestProjectInputs < Minitest::Test
     [
       { "project" => "empty project" },
       { "project" => "explicit status - idea", "status" => "idea" },
+      { "project" => "explicit status - paused", "status" => "paused" },
       { "project" => "explicit status - dropped", "status" => "dropped" },
       { "project" => "explicit status - done", "status" => "done" },
       { "project" => "explicit status - wip", "status" => "wip" },
@@ -368,6 +369,16 @@ class TestProjectInputs < Minitest::Test
           {
             "project" => "convert status: dropped to dropped_on: today",
             "dropped_on" => Date.today
+          }
+        ],
+        [
+          {
+            "project" => "convert status: paused to paused_on: today",
+            "status" => "paused"
+          },
+          {
+            "project" => "convert status: paused to paused_on: today",
+            "paused_on" => Date.today
           }
         ],
         [

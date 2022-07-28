@@ -362,6 +362,16 @@ class TestProjectInputs < Minitest::Test
         ],
         [
           {
+            "project" => "convert status: dropped to dropped_on: today",
+            "status" => "dropped"
+          },
+          {
+            "project" => "convert status: dropped to dropped_on: today",
+            "dropped_on" => Date.today
+          }
+        ],
+        [
+          {
             "project" => "removes time_estimate if project is done",
             "time_estimate" => "30m",
             "status" => "done"
@@ -589,7 +599,7 @@ class TestProjectComparison < Minitest::Test
         [{}, { "status" => "dropped" }, -1]
       ]
     ).each do |x, y, e|
-      assert_equal e, Plansheet::Project.new(x).compare_completeness(Plansheet::Project.new(y))
+      assert_equal e, Plansheet::Project.new(x).compare_completeness(Plansheet::Project.new(y)), [x, y, e]
     end
   end
 

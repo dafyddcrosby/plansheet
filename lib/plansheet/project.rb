@@ -55,7 +55,8 @@ module Plansheet
     # namespace is derived from file name
     STRING_PROPERTIES = %w[priority status location notes time_estimate daily_time_roi weekly_time_roi yearly_time_roi
                            day_of_week frequency last_for lead_time].freeze
-    DATE_PROPERTIES = %w[due defer completed_on created_on starts_on last_done last_reviewed].freeze
+    DATE_PROPERTIES = %w[due defer dropped_on completed_on created_on starts_on last_done
+                         last_reviewed].freeze
     ARRAY_PROPERTIES = %w[dependencies externals urls tasks done tags].freeze
 
     ALL_PROPERTIES = STRING_PROPERTIES + DATE_PROPERTIES + ARRAY_PROPERTIES
@@ -124,11 +125,14 @@ module Plansheet
         remove_instance_variable("@time_estimate") if @time_estimate
         remove_instance_variable("@time_estimate_minutes") if @time_estimate
         remove_instance_variable("@time_roi_payoff") if @time_roi_payoff
+      elsif dropped?
+        @dropped_on ||= Date.today
+        remove_instance_variable("@status") if @status
       end
     end
 
-    def completed_on_month
-      @completed_on&.strftime("%Y-%m")
+    def archive_month
+      @completed_on&.strftime("%Y-%m") || Date.today.strftime("%Y-%m")
     end
 
     def yearly_minutes_saved
@@ -225,10 +229,10 @@ module Plansheet
     # Projects that are dropped or done are considered "complete", insofar as
     # they are only kept around for later reference.
     def compare_completeness(other)
-      return 0 if dropped_or_done? && other.dropped_or_done?
-      return 0 if !dropped_or_done? && !other.dropped_or_done?
-
-      dropped_or_done? ? 1 : -1
+      retval = 0
+      retval += 1 if dropped_or_done?
+      retval -= 1 if other.dropped_or_done?
+      retval
     end
 
     def status
@@ -236,6 +240,7 @@ module Plansheet
       return recurring_status if recurring?
       return task_based_status if @tasks || @done
       return "done" if @completed_on && @tasks.nil?
+      return "dropped" if @dropped_on
 
       "idea"
     end
@@ -322,16 +327,20 @@ module Plansheet
       !@frequency.nil? || !@day_of_week.nil? || !@last_done.nil? || !@last_for.nil?
     end
 
-    def dropped_or_done?
-      status == "dropped" || status == "done"
+    def dropped?
+      status == "dropped"
     end
 
     def done?
       status == "done"
     end
 
+    def dropped_or_done?
+      dropped? || done?
+    end
+
     def archivable?
-      !recurring? && @completed_on
+      (!recurring? && @completed_on) || dropped?
     end
 
     def task_time_estimate(str)

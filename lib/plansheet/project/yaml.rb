@@ -100,6 +100,9 @@ module Plansheet
           "completed_on":
             desc: When the (non-recurring) project was completed
             type: date
+          "dropped_on":
+            desc: When the project was dropped
+            type: date
           "created_on":
             desc: When the project was created
             type: date

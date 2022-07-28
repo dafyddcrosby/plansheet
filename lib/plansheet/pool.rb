@@ -86,7 +86,7 @@ module Plansheet
       # archived at a time, I'll leave that for someone else to implement ;-)
       projects_to_archive = @projects.select(&:archivable?)
       projects_to_archive.each do |project|
-        path = Pathname.new "#{archive_dir}/#{project.completed_on_month}/#{project.namespace}.yml"
+        path = Pathname.new "#{archive_dir}/#{project.archive_month}/#{project.namespace}.yml"
         Dir.mkdir path.dirname unless path.dirname.exist?
         pyf = ProjectYAMLFile.new path
         pyf.append_project project

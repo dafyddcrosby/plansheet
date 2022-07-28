@@ -5,6 +5,7 @@ require "test_helper"
 require "plansheet/time"
 
 class TestTime < Minitest::Test
+  include Plansheet::TimeUtils
   def test_parse_date_duration
     [
       ["1d", 1],

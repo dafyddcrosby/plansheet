@@ -79,7 +79,7 @@ module Plansheet
 
     def archive_projects
       archive_dir = "#{@projects_dir}/archive/"
-      Dir.mkdir archive_dir unless Dir.exist? archive_dir
+      FileUtils.mkdir_p archive_dir
 
       # NOTE: It would save writes if we sorted and did all month/namespaces
       # writes only once, but as the normal case only sees a few projects

@@ -241,11 +241,11 @@ module Plansheet
 
     def status
       return @status if @status
+      return "dropped" if @dropped_on
+      return "paused" if @paused_on
       return recurring_status if recurring?
       return task_based_status if @tasks || @done
       return "done" if @completed_on && @tasks.nil?
-      return "dropped" if @dropped_on
-      return "paused" if @paused_on
 
       "idea"
     end

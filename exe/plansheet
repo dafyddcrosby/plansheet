@@ -30,6 +30,10 @@ parser.on(
   "Show projects with a time return-on-investment"
 )
 parser.on(
+  "--needs-thinking",
+  "Show projects that need tasks, time estimates, etc (WIP)"
+)
+parser.on(
   "--calendar",
   "List of projects ordered by due date"
 )
@@ -66,6 +70,15 @@ elsif options[:"time-roi"]
   project_arr.each do |proj|
     puts proj
     puts "time ROI payoff: #{proj.time_roi_payoff}"
+    puts "\n"
+  end
+elsif options[:"needs-thinking"]
+  puts "Projects with no tasks"
+  project_arr = pool.projects.sort
+  project_arr.delete_if(&:dropped_or_done?)
+  project_arr.delete_if(&:tasks)
+  project_arr.each do |proj|
+    puts proj
     puts "\n"
   end
 elsif options[:calendar]

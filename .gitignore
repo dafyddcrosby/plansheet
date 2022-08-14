@@ -6,6 +6,7 @@
 /pkg/
 /spec/reports/
 /tmp/
-*pdf
+*.pdf
 /vendor
-*gem
+*.gem
+Gemfile.lock

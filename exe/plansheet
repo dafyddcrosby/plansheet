@@ -51,7 +51,9 @@ pool = Plansheet::Pool.new({ projects_dir: config["projects_dir"],
 if options[:sheet] || options.empty?
   require "plansheet/sheet"
   FileUtils.mkdir_p config["output_dir"]
-  Plansheet::LaTeXSheet.new("#{config["output_dir"]}/projects.tex", pool.projects)
+  project_arr = pool.projects
+  project_arr.delete_if { |x| %w[dropped done paused].include? x.status }
+  Plansheet::LaTeXSheet.new("#{config["output_dir"]}/projects.tex", project_arr)
 elsif options[:irb]
   binding.irb # rubocop:disable Lint/Debugger
 elsif options[:stats]

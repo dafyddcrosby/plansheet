@@ -58,7 +58,7 @@ module Plansheet
                            day_of_week frequency last_for lead_time].freeze
     DATE_PROPERTIES = %w[due defer paused_on dropped_on completed_on created_on starts_on last_done
                          last_reviewed].freeze
-    ARRAY_PROPERTIES = %w[dependencies externals urls tasks done tags].freeze
+    ARRAY_PROPERTIES = %w[dependencies externals urls tasks setup_tasks cleanup_tasks done tags].freeze
 
     ALL_PROPERTIES = STRING_PROPERTIES + DATE_PROPERTIES + ARRAY_PROPERTIES
 

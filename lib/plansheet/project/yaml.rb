@@ -140,6 +140,16 @@ module Plansheet
             type: seq
             sequence:
               - type: str
+          "setup_tasks":
+            desc: List of tasks needed before main project work begins
+            type: seq
+            sequence:
+              - type: str
+          "cleanup_tasks":
+            desc: List of tasks needed before main project work begins
+            type: seq
+            sequence:
+              - type: str
           "done":
             desc: List of tasks which have been completed
             type: seq

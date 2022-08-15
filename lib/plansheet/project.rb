@@ -332,16 +332,10 @@ module Plansheet
       !@frequency.nil? || !@day_of_week.nil? || !@last_done.nil? || !@last_for.nil?
     end
 
-    def paused?
-      status == "paused"
-    end
-
-    def dropped?
-      status == "dropped"
-    end
-
-    def done?
-      status == "done"
+    PROJECT_STATUS_PRIORITY.each_key do |stat|
+      define_method("#{stat}?".to_sym) do
+        status == stat
+      end
     end
 
     def dropped_or_done?

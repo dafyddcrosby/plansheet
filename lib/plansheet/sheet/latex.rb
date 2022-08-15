@@ -2,7 +2,7 @@
 
 require "date"
 module Plansheet
-  # The Sheet class constructs a Markdown/LaTeX file for use with pandoc
+  # The Sheet class constructs a Markdown/LaTeX file for use with pdflatex
   class LaTeXSheet
     def initialize(output_file, project_arr)
       projects_str = String.new

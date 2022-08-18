@@ -6,14 +6,17 @@ require_relative "project/yaml"
 require_relative "project/stringify"
 require_relative "./time"
 
-# Needed for Project#time_estimate, would be much happier *not* patching Array
-class Array
-  def nil_if_empty
-    count.zero? ? nil : self
-  end
-end
-
 module Plansheet
+  module PlansheetArray
+    # Needed for Project#time_estimate
+    refine Array do
+      def nil_if_empty
+        count.zero? ? nil : self
+      end
+    end
+  end
+  using PlansheetArray
+
   PROJECT_STATUS_PRIORITY = {
     "wip" => 1,
     "ready" => 2,

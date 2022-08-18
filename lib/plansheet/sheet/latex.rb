@@ -4,15 +4,18 @@ require "date"
 module Plansheet
   # The Sheet class constructs a Markdown/LaTeX file for use with pdflatex
   class LaTeXSheet
+    include LaTeXMixins
     def initialize(output_file, project_arr)
       projects_str = String.new
       projects_str << sheet_header
-
-      project_arr.each do |p|
-        projects_str << project_minipage(p)
+      projects_str << document do
+        "\\thispagestyle{empty}\n\n\\section{Date: #{Date.today}}\n".concat(
+          project_arr.map do |p|
+            project_minipage(p)
+          end.join
+        )
       end
       puts "Writing to #{output_file}"
-      projects_str << sheet_footer
       File.write(output_file, projects_str)
     end
 
@@ -57,42 +60,27 @@ module Plansheet
         \\providecommand{\\tightlist}{
           \\setlength{\\itemsep}{0pt}\\setlength{\\parskip}{0pt}}
         \\setcounter{secnumdepth}{-\\maxdimen}
-
-        \\begin{document}
-
-        \\thispagestyle{empty}
-
-        \\section{Date: #{Date.today}}
       FRONTMATTER
     end
 
-    def sheet_footer
-      '\end{document}'
-    end
-
     def project_minipage(proj)
-      str = String.new
-      str << "\\begin{minipage}{6cm}\n"
-      str << project_header(proj)
-      proj&.tasks&.each do |t|
-        str << "$\\square$ #{sanitize_string(t)} \\\\\n"
+      minipage("6cm") do
+        project_header(proj)&.concat(
+          proj&.tasks&.map do |t|
+            "#{checkbox_item sanitize_string(t)}#{HARD_NL}"
+          end&.join("") || "" # empty string to catch nil
+        )
       end
-      str << "\\end{minipage}\n"
-      str
-    end
-
-    def sanitize_string(str)
-      str.gsub("_", '\_')
     end
 
     def project_header(proj)
       str = String.new
-      str << "#{sanitize_string(proj.namespace)}: #{sanitize_string(proj.name)}\\\\\n"
+      str << "#{sanitize_string(proj.namespace)}: #{sanitize_string(proj.name)}#{HARD_NL}"
       str << proj.status.to_s
       str << " - #{sanitize_string(proj.location)}" if proj.location
       str << " due: #{proj.due}" if proj.due
       str << " time: #{proj.time_estimate}" if proj.time_estimate
-      str << " \\\\\n"
+      str << HARD_NL
       str
     end
   end

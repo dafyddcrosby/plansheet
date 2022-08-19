@@ -4,11 +4,14 @@
 require "plansheet"
 require "optparse"
 
+options = {}
 parser = OptionParser.new
 parser.on(
-  "--sheet",
+  "--sheet [TYPE]",
   "Generates MD/LaTeX project PDF"
-)
+) do |sheet_type|
+  options[:sheet] = sheet_type || "projects"
+end
 parser.on(
   "--sort",
   "Sort project files"
@@ -41,7 +44,6 @@ parser.on(
   "--location_filter LOCATION",
   "location filter for CLI dump (WIP)"
 )
-options = {}
 parser.parse!(into: options)
 
 config = Plansheet.load_config
@@ -49,11 +51,17 @@ pool = Plansheet::Pool.new({ projects_dir: config["projects_dir"],
                              sort_order: config["sort_order"] })
 
 if options[:sheet] || options.empty?
+  # TODO: Add pdflatex command (customizable path)
   require "plansheet/sheet"
   FileUtils.mkdir_p config["output_dir"]
-  project_arr = pool.projects
-  project_arr.delete_if { |x| %w[dropped done paused].include? x.status }
-  Plansheet::LaTeXSheet.new("#{config["output_dir"]}/projects.tex", project_arr)
+  case options[:sheet]
+  when "monthly"
+    Plansheet::MonthlyLaTeXSheet.new("#{config["output_dir"]}/monthly.tex", config["monthly"])
+  else
+    project_arr = pool.projects
+    project_arr.delete_if { |x| %w[dropped done paused].include? x.status }
+    Plansheet::LaTeXSheet.new("#{config["output_dir"]}/projects.tex", project_arr)
+  end
 elsif options[:irb]
   binding.irb # rubocop:disable Lint/Debugger
 elsif options[:stats]

@@ -124,11 +124,13 @@ module Plansheet
       end
 
       if done?
-        @completed_on ||= Date.today unless recurring?
         remove_instance_variable("@status") if @status
-        remove_instance_variable("@time_estimate") if @time_estimate
-        remove_instance_variable("@time_estimate_minutes") if @time_estimate
-        remove_instance_variable("@time_roi_payoff") if @time_roi_payoff
+        unless recurring?
+          @completed_on ||= Date.today
+          remove_instance_variable("@time_estimate") if @time_estimate
+          remove_instance_variable("@time_estimate_minutes") if @time_estimate
+          remove_instance_variable("@time_roi_payoff") if @time_roi_payoff
+        end
       elsif paused?
         @paused_on ||= Date.today
         remove_instance_variable("@status") if @status

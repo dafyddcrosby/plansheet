@@ -330,11 +330,11 @@ module Plansheet
     end
 
     def recurring_due?
-      !@frequency.nil? || !@day_of_week.nil?
+      !!(@frequency || @day_of_week)
     end
 
     def recurring?
-      !@frequency.nil? || !@day_of_week.nil? || !@last_done.nil? || !@last_for.nil?
+      !!(@frequency || @day_of_week || @last_done || @last_for)
     end
 
     PROJECT_STATUS_PRIORITY.each_key do |stat|

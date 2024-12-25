@@ -1,2 +1,2 @@
 inherit_gem:
-  dc-rubocop: ruby26.yml
+  dc-rubocop: ruby30.yml

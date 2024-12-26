@@ -23,7 +23,7 @@ module Plansheet
         project_header(proj)&.concat(
           proj&.tasks&.map do |t|
             "#{checkbox_item sanitize_string(t)}#{HARD_NL}"
-          end&.join("") || "" # empty string to catch nil
+          end&.join || "" # empty string to catch nil
         )
       end
     end

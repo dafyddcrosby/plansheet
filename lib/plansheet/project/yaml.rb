@@ -12,7 +12,7 @@ module Plansheet
   # to save the later YAML.load
   YAML_TIME_REGEX = "/\\d+[mh] ?\d*m?/" # TODO: regex is bad, adjust for better handling of pretty time
   YAML_DATE_REGEX = "/\\d+[dw]/"
-  PROJECT_YAML_SCHEMA = <<~YAML
+  PROJECT_YAML_SCHEMA = <<~YAML.freeze
     desc: dc-tasks project schema
     type: seq
     sequence:

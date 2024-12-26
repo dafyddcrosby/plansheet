@@ -4,7 +4,7 @@ require "yaml"
 require "date"
 require_relative "project/yaml"
 require_relative "project/stringify"
-require_relative "./time"
+require_relative "time"
 
 module Plansheet
   module PlansheetArray
@@ -45,8 +45,8 @@ module Plansheet
     include Comparable
     include Plansheet::TimeUtils
 
-    TIME_EST_REGEX = /\((\d+\.?\d*[mMhH])\)$/.freeze
-    TIME_EST_REGEX_NO_CAPTURE = /\(\d+\.?\d*[mMhH]\)$/.freeze
+    TIME_EST_REGEX = /\((\d+\.?\d*[mMhH])\)$/
+    TIME_EST_REGEX_NO_CAPTURE = /\(\d+\.?\d*[mMhH]\)$/
 
     PROJECT_PRIORITY = {
       "high" => 1,
@@ -54,7 +54,7 @@ module Plansheet
       "low" => 3
     }.freeze
 
-    COMPARISON_ORDER_SYMS = Plansheet::Pool::POOL_COMPARISON_ORDER.map { |x| "compare_#{x}".to_sym }.freeze
+    COMPARISON_ORDER_SYMS = Plansheet::Pool::POOL_COMPARISON_ORDER.map { |x| :"compare_#{x}" }.freeze
     # NOTE: The order of these affects presentation!
     # namespace is derived from file name
     STRING_PROPERTIES = %w[priority status location notes time_estimate daily_time_roi weekly_time_roi yearly_time_roi
@@ -107,9 +107,9 @@ module Plansheet
       # Generate time estimate from tasks if specified
       # Stomps time_estimate field
       if @tasks
-        @time_estimate_minutes = @tasks&.select do |t|
-                                   t.match? TIME_EST_REGEX_NO_CAPTURE
-                                 end&.nil_if_empty&.map { |t| task_time_estimate(t) }&.sum
+        @time_estimate_minutes = @tasks&.grep(TIME_EST_REGEX_NO_CAPTURE)&.nil_if_empty&.map do |t| # rubocop:disable Style/SafeNavigationChainLength
+          task_time_estimate(t)
+        end&.sum
       elsif @time_estimate
         # No tasks with estimates, but there's an explicit time_estimate
         # Convert the field to minutes
@@ -338,7 +338,7 @@ module Plansheet
     end
 
     PROJECT_STATUS_PRIORITY.each_key do |stat|
-      define_method("#{stat}?".to_sym) do
+      define_method(:"#{stat}?") do
         status == stat
       end
     end

@@ -58,13 +58,12 @@ module Plansheet
 
         @projects[proj_index]&.dependencies&.each do |dep|
           di = lookup_hash[dep]
-          if di
-            # Don't add edges for dropped/done projects, they'll be sorted out
-            # later
-            next if @projects[di].dropped_or_done?
+          next unless di
+          # Don't add edges for dropped/done projects, they'll be sorted out
+          # later
+          next if @projects[di].dropped_or_done?
 
-            pg.add_edge(@projects[di], @projects[proj_index])
-          end
+          pg.add_edge(@projects[di], @projects[proj_index])
         end
       end
 
@@ -119,10 +118,9 @@ module Plansheet
     end
 
     def load_projects_dir(dir)
-      project_arr = []
       projects = Dir.glob("*yml", base: dir)
-      projects.each do |l|
-        project_arr << ProjectYAMLFile.new(File.join(dir, l)).load_file
+      project_arr = projects.map do |l|
+        ProjectYAMLFile.new(File.join(dir, l)).load_file
       end
 
       @projects = project_arr.flatten!

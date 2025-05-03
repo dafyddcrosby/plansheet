@@ -98,7 +98,7 @@ elsif options[:"needs-thinking"]
 elsif options[:calendar]
   # TODO: add a project filter method
   project_arr = pool.projects
-  project_arr.delete_if { |x| x.status == "dropped" || x.status == "done" }
+  project_arr.delete_if { |x| %w[dropped done].include?(x.status) }
   project_arr.delete_if { |x| x.due.nil? }
   project_arr.sort_by!(&:due)
   project_arr.each do |proj|
@@ -108,7 +108,7 @@ elsif options[:calendar]
 elsif options[:cli]
   # TODO: add a project filter method
   project_arr = pool.projects
-  project_arr.delete_if { |x| x.status == "dropped" || x.status == "done" }
+  project_arr.delete_if { |x| %w[dropped done].include?(x.status) }
   project_arr.select! { |x| x.location == options[:location_filter] } if options[:location_filter]
   project_arr.each do |proj|
     puts proj
